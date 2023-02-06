@@ -198,7 +198,7 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
 
         self._set_pod_env_vars()
 
-        for config_map in self._get_config_maps():
+        for config_map in {}:  # self._get_config_maps():
 
             if not self.is_config_map_created(name=config_map.name):
                 message = f"configMap {config_map.name} does not "
