@@ -177,6 +177,7 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
                     "cpu_limit": 1,
                     "mem_limit": "8G",
                     "image": "eoepca/iat-jupyterlab:main",
+                    "default_url": "/lab",
                 },
             },
             {
@@ -185,7 +186,7 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
                     "cpu_limit": 1,
                     "mem_limit": "8G",
                     "image": "eoepca/iga-remote-desktop:develop",
-                    "baseUrl": "",
+                    "default_url": "/desktop",
                 },
             },
             {
