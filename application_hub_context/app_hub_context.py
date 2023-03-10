@@ -163,14 +163,53 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
 
         profile_list = [
             {
-                "display_name": "JupyterLab",
-                "slug": "iat_lab",
+                "display_name": "PDE - Code Server",
                 "default": True,
                 "kubespawner_override": {
                     "cpu_limit": 1,
-                    "mem_limit": "4G",
-                    "image": "jupyter/datascience-notebook",
-                    "default_url": "lab",
+                    "mem_limit": "8G",
+                    "image": "eoepca/pde-code-server:develop",
+                },
+            },
+            {
+                "display_name": "IAT - JupyterLab",
+                "kubespawner_override": {
+                    "cpu_limit": 1,
+                    "mem_limit": "8G",
+                    "image": "eoepca/iat-jupyterlab:main",
+                },
+            },
+            {
+                "display_name": "IGA - Remote Desktop base",
+                "kubespawner_override": {
+                    "cpu_limit": 1,
+                    "mem_limit": "8G",
+                    "image": "eoepca/iga-remote-desktop:develop",
+                    "baseUrl": "",
+                },
+            },
+            {
+                "display_name": "IGA - Remote Desktop QGIS",
+                "kubespawner_override": {
+                    "cpu_limit": 1,
+                    "mem_limit": "8G",
+                    "image": "eoepca/iga-remote-desktop-qgis:develop",
+                },
+            },
+            {
+                "display_name": "IGA - Remote Desktop SNAP",
+                "kubespawner_override": {
+                    "cpu_limit": 1,
+                    "mem_limit": "8G",
+                    "image": "eoepca/iga-remote-desktop-snap:develop",
+                },
+            },
+            {
+                "display_name": "IGA - Dashboard Streamlit",
+                "kubespawner_override": {
+                    "cpu_limit": 1,
+                    "mem_limit": "8G",
+                    "image": "eoepca/iga-streamlit-demo:develop",
                 },
             },
         ]
