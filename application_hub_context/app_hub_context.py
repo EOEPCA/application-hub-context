@@ -195,6 +195,7 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
                     "cpu_limit": 1,
                     "mem_limit": "8G",
                     "image": "eoepca/iga-remote-desktop-qgis:develop",
+                    "default_url": "/desktop",
                 },
             },
             {
@@ -203,6 +204,7 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
                     "cpu_limit": 1,
                     "mem_limit": "8G",
                     "image": "eoepca/iga-remote-desktop-snap:develop",
+                    "default_url": "/desktop",
                 },
             },
             {
@@ -211,6 +213,14 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
                     "cpu_limit": 1,
                     "mem_limit": "8G",
                     "image": "eoepca/iga-streamlit-demo:develop",
+                },
+            },
+            {
+                "display_name": "IGA - Stack Browser",
+                "kubespawner_override": {
+                    "cpu_limit": 1,
+                    "mem_limit": "8G",
+                    "image": "eoepca/stac-browser:main",
                 },
             },
         ]
