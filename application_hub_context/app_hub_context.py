@@ -251,8 +251,8 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
         for config_map in self._get_config_maps():
 
             try:
-                if not self.is_config_map_created(name=config_map.name):
-                    message = f"configMap {config_map.name} does not "
+                if not self.is_config_map_created(name=config_map["name"]):
+                    message = f"configMap {config_map['name']} does not "
                     "exist in the namespace {self.namespace}"
                     raise ValueError(message)
 
@@ -260,9 +260,9 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
                     self.spawner.volume_mounts.extend(
                         [
                             {
-                                "name": config_map.name,
-                                "mountPath": config_map.mountPath,
-                                "subPath": config_map.key,
+                                "name": config_map["name"],
+                                "mountPath": config_map["mountPath"],
+                                "subPath": config_map["key"],
                             },
                         ]
                     )
@@ -270,17 +270,14 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
                     self.spawner.volumes.extend(
                         [
                             {
-                                "name": config_map.name,
-                                "configMap": {
-                                    "name": config_map.key,
-                                    "defaultMode": config_map.defaultMode,
-                                },
-                            },
+                                "name": config_map["name"],
+                                "configMap": {"name": config_map["key"]},
+                            }
                         ]
                     )
             except Exception as err:
                 print(f"Unexpected {err=}, {type(err)=}")
-                print(f"Skipping creation of configmap {config_map.name}")
+                print(f"Skipping creation of configmap {config_map['name']}")
 
     def dispose(self):
         return True
@@ -295,8 +292,8 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
         config_maps = {}
 
         config_maps["aws-config"] = {
-            "key": "aws-credentials",
-            "name": "aws-credentials",
+            "key": "aws-config",
+            "name": "aws-config",
             "mountPath": "/home/jovyan/.aws/config",
             "defaultMode": "0660",
             "readOnly": "true",
@@ -309,10 +306,13 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
             "defaultMode": "0660",
             "readOnly": "true",
         }
+
         config_maps["docker-config"] = {
-            "key": "aws-credentials",
-            "name": "aws-credentials",
-            "mountPath": "/home/jovyan/.docker/config.json ",
+            "key": "docker-config",
+            "name": "docker-config",
+            "mountPath": "/home/jovyan/.docker/config.json",
             "defaultMode": "0660",
             "readOnly": "true",
         }
+
+        return config_maps.values()
