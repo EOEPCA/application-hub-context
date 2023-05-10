@@ -289,7 +289,7 @@ class ApplicationHubContext(ABC):
             self.spawner.log.error(f"Exception deleting pvc {name}: {e}\n")
 
 
-class DefaulfApplicationHubContext(ApplicationHubContext):
+class DefaultApplicationHubContext(ApplicationHubContext):
     def get_profile_list(self):
 
         return self.config_parser.get_profiles()

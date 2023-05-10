@@ -10,6 +10,7 @@ config_path="/usr/local/etc/jupyterhub/config.yml"
 ## Profile list
 
 ```python
+from application_hub_context.app_hub_context import DefaultApplicationHubContext
 
 namespace_prefix = "jupyter"
 
@@ -19,7 +20,7 @@ def custom_options_form(spawner):
 
     namespace = f"{namespace_prefix}-{spawner.user.name}"
 
-    workspace = DefaulfApplicationHubContext(
+    workspace = DefaultApplicationHubContext(
         namespace=namespace,
         spawner=spawner,
         config_path=config_path,
@@ -47,7 +48,7 @@ def pre_spawn_hook(spawner):
 
     namespace = f"{namespace_prefix}-{spawner.user.name}"
 
-    workspace = DefaulfApplicationHubContext(
+    workspace = DefaultApplicationHubContext(
         namespace=namespace,
         spawner=spawner,
         config_path=config_path
@@ -71,7 +72,7 @@ def post_stop_hook(spawner):
 
     namespace = f"jupyter-{spawner.user.name}"
 
-    workspace = DefaulfApplicationHubContext(
+    workspace = DefaultApplicationHubContext(
         namespace=namespace,
         spawner=spawner,
         config_path=config_path
