@@ -1,0 +1,24 @@
+site_name: Application-Hub context
+site_description: 'Application-Hub context'
+# Repository
+
+repo_name: 'eoepca/application-hub-context'
+repo_url: 'https://github.com/EOEPCA/zapplication-hub-context'
+edit_uri: 'blob/main/docs/src/'
+site_url: 'https://eoepca.github.io/application-hub-context/'
+
+
+theme:
+  name: material
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - mkdocs-jupyter
+
+nav:
+  - Introduction: 'index.md'
