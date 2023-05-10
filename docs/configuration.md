@@ -66,9 +66,13 @@ volume_mount:
 persist: true
 ```
 
+**Note**: if the _PVC_ does not exist it is created.
+
+If the `persist` boolean flag set to `false`, both the _PVC_ and _Volume_ are deleted.
+
 ## ConfigMaps
 
-An existing configMap is defined with:
+An existing configMap to be mounted on the spawned pod is defined with:
 
 ```yaml
 name: aws-credentials
@@ -78,7 +82,7 @@ default_mode: 0660
 readonly: true
 ```
 
-A new configMap with the content inline:
+A new configMap with the content inline to be mounted on the spawned pod is defined with:
 
 ```yaml
 name: aws-credentials
