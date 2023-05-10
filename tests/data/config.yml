@@ -1,0 +1,92 @@
+profiles:
+  - id: profile_1
+    groups:
+    - group-1
+    definition:
+      display_name: Profile 1
+      slug: profile_1_slug
+      default: False
+      kubespawner_override:
+        cpu_limit: 4
+        mem_limit: 8G
+        image: eoepca/iat-jupyterlab:main
+    default_url: "lab"
+    pod_env_vars:
+      A: 10
+      B: 20
+
+  - id: profile_2
+    groups:
+    - group-2
+    definition:
+      display_name: Profile 2
+      slug: profile_2_slug
+      default: False
+      kubespawner_override:
+        cpu_limit: 4
+        mem_limit: 8G
+        image: eoepca/pde-code-server:develop
+    config_maps:
+      - name: aws-credentials
+        key: aws-credentials
+        mount_path: /home/jovyan/.aws/credentials
+        default_mode: 0660
+        readonly: true
+      - name: aws-config
+        key: aws-config
+        mount_path: /home/jovyan/.aws/config
+        default_mode: 0660
+        readonly: true
+      - name: docker-config
+        key: docker-config
+        mount_path: /home/jovyan/.docker/config.json
+        default_mode: 0660
+        readonly: true
+    volumes:
+      - name: volume-workspace
+        claim_name: claim-workspace
+        size: 10Gi
+        storage_class: "scw-bssd"
+        access_modes:
+          - "ReadWriteOnce"
+        volume_mount:
+          name: volume-workspace
+          mount_path: "/workspace"
+        persist: true
+    pod_env_vars:
+      A: 10
+      B: 20
+  - id: profile_3
+    groups:
+    - group-3
+    definition:
+      display_name: Profile 3
+      slug: profile_3_slug
+      default: False
+      kubespawner_override:
+        cpu_limit: 4
+        mem_limit: 8G
+        image: eoepca/pde-code-server:develop
+    configMaps:
+      - name: new-config
+        key: new-config
+        content: |-
+          This is the cool content
+        mount_path: /home/jovyan/new-cm
+        defaultMode: 0660
+        readOnly: true
+    volumes: []
+    pod_env_vars:
+      A: 10
+      B: 20
+  - id: profile_4
+    groups:
+    - group-4
+    definition:
+      display_name: Profile 4
+      slug: profile_4_slug
+      default: False
+      kubespawner_override:
+        cpu_limit: 4
+        mem_limit: 8G
+        image: eoepca/iat-jupyterlab:main

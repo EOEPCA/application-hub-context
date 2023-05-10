@@ -49,6 +49,7 @@ class TestK8s(unittest.TestCase):
         cls.app_hub_context = DefaulfApplicationHubContext(
             namespace="a_namespace",
             spawner=spawner,
+            config_path="tests/data/config.yml",
             a=1,
             b=2,
         )

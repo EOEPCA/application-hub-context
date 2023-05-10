@@ -42,7 +42,11 @@ class TestConstructor(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app_hub_context = DefaulfApplicationHubContext(
-            namespace="a_namespace", spawner=spawner, a=1, b=2
+            namespace="a_namespace",
+            spawner=spawner,
+            config_path="tests/data/config.yml",
+            a=1,
+            b=2,
         )
 
     def test_obj(self):

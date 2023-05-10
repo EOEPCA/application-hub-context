@@ -21,3 +21,4 @@ jupyterhub-idle-culler
 kubernetes
 loguru
 addict
+pydantic

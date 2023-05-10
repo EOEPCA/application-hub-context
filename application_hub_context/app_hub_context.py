@@ -1,16 +1,26 @@
 import os
+import time
 from abc import ABC
 from http import HTTPStatus
-from typing import TextIO
+from typing import Dict, TextIO
 
 from kubernetes import client, config
 from kubernetes.client import Configuration
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 
+from application_hub_context.parser import ConfigParser
+
 
 class ApplicationHubContext(ABC):
-    def __init__(self, namespace, spawner, kubeconfig_file: TextIO = None, **kwargs):
+    def __init__(
+        self,
+        namespace,
+        spawner,
+        config_path: str,
+        kubeconfig_file: TextIO = None,
+        **kwargs,
+    ):
 
         # k8s
         self.kubeconfig_file = kubeconfig_file
@@ -28,8 +38,20 @@ class ApplicationHubContext(ABC):
         # pod env vars
         self.env_vars = {}
 
+        # loads config
+        self.config_parser = ConfigParser.read_file(
+            config_path=config_path, user_groups=self.user_groups
+        )
+
         # update class dict with kwargs
         self.__dict__.update(kwargs)
+
+    def set_pod_env_vars(self, **kwargs):
+
+        extended_vars = {**self.env_vars, **kwargs}
+
+        for key, value in extended_vars.items():
+            self.spawner.environment[key] = str(value)
 
     @staticmethod
     def _get_api_client(kubeconfig_file: TextIO = None):
@@ -157,112 +179,159 @@ class ApplicationHubContext(ABC):
     def dispose(self):
         pass
 
+    @staticmethod
+    def retry(fun, max_tries=10, interval=5, **kwargs):
+        for i in range(max_tries):
+            try:
+                time.sleep(interval)
+                return fun(**kwargs)
+            except ApiException as exc:
+                if exc.status.value < 500 and exc.status.value != 429:
+                    # Useless to retry against a 4xx/not-429
+                    raise exc
+            except Exception:
+                continue
+        if i == max_tries:
+            raise ApiException()
+
+    def create_configmap(
+        self,
+        name,
+        key,
+        content,
+        annotations: Dict = {},
+        labels: Dict = {},
+    ):
+        metadata = client.V1ObjectMeta(
+            annotations=annotations,
+            deletion_grace_period_seconds=30,
+            labels=labels,
+            name=name,
+            namespace=self.namespace,
+        )
+
+        data = {}
+        data[key] = content
+
+        config_map = client.V1ConfigMap(
+            api_version="v1",
+            kind="ConfigMap",
+            data=data,
+            metadata=metadata,
+        )
+
+        try:
+            response = self.core_v1_api.create_namespaced_config_map(
+                namespace=self.namespace,
+                body=config_map,
+                pretty=True,
+            )
+
+            if not self.retry(self.is_config_map_created, name=name):
+                raise ApiException(http_resp=response)
+            self.spawner.log.info(f"config map {name} created")
+            return response
+
+        except ApiException as e:
+            self.spawner.log.info(
+                f"config map {name} not created in the time interval assigned"
+            )
+            raise e
+
+    def create_pvc(
+        self,
+        name,
+        access_modes,
+        size,
+        storage_class,
+    ):
+        if self.is_pvc_created(name=name):
+            return self.core_v1_api.read_namespaced_persistent_volume_claim(
+                name=name, namespace=self.namespace
+            )
+
+        metadata = client.V1ObjectMeta(name=name, namespace=self.namespace)
+
+        spec = client.V1PersistentVolumeClaimSpec(
+            access_modes=access_modes,
+            resources=client.V1ResourceRequirements(
+                requests={"storage": size}
+            ),  # noqa: E501
+        )
+
+        spec.storage_class_name = storage_class
+
+        body = client.V1PersistentVolumeClaim(metadata=metadata, spec=spec)
+
+        try:
+            response = self.core_v1_api.create_namespaced_persistent_volume_claim(  # noqa: E501
+                self.namespace, body, pretty=True
+            )
+
+            if not self.retry(self.is_pvc_created, name=name):
+                raise ApiException(http_resp=response)
+            self.spawner.log.info(f"pvc {name} created")
+            return response
+        except ApiException as e:
+            self.spawner.log.error(
+                f"pvc {name} not created in the time interval assigned:"
+                f" Exception when calling get status: {e}\n"
+            )
+            raise e
+
+    def delete_pvc(self, name):
+        try:
+            response = self.core_v1_api.delete_namespaced_persistent_volume_claim(
+                name=name, namespace=self.namespace
+            )
+            return response
+        except ApiException as e:
+            self.spawner.log.error(f"Exception deleting pvc {name}: {e}\n")
+
 
 class DefaulfApplicationHubContext(ApplicationHubContext):
     def get_profile_list(self):
 
-        profile_list = [
-            {
-                "display_name": "PDE - Code Server",
-                "default": True,
-                "kubespawner_override": {
-                    "cpu_limit": 1,
-                    "mem_limit": "8G",
-                    "image": "eoepca/pde-code-server:develop",
-                },
-            },
-            {
-                "display_name": "IAT - JupyterLab",
-                "kubespawner_override": {
-                    "cpu_limit": 1,
-                    "mem_limit": "8G",
-                    "image": "eoepca/iat-jupyterlab:main",
-                    "default_url": "/lab",
-                },
-            },
-            {
-                "display_name": "IGA - Remote Desktop base",
-                "kubespawner_override": {
-                    "cpu_limit": 1,
-                    "mem_limit": "8G",
-                    "image": "eoepca/iga-remote-desktop:develop",
-                    "default_url": "/desktop",
-                },
-            },
-            {
-                "display_name": "IGA - Remote Desktop QGIS",
-                "kubespawner_override": {
-                    "cpu_limit": 1,
-                    "mem_limit": "8G",
-                    "image": "eoepca/iga-remote-desktop-qgis:develop",
-                    "default_url": "/desktop",
-                },
-            },
-            {
-                "display_name": "IGA - Remote Desktop SNAP",
-                "kubespawner_override": {
-                    "cpu_limit": 1,
-                    "mem_limit": "8G",
-                    "image": "eoepca/iga-remote-desktop-snap:develop",
-                    "default_url": "/desktop",
-                },
-            },
-            {
-                "display_name": "IGA - Dashboard Streamlit",
-                "kubespawner_override": {
-                    "cpu_limit": 1,
-                    "mem_limit": "8G",
-                    "image": "eoepca/iga-streamlit-demo:develop",
-                },
-            },
-            {
-                "display_name": "IGA - Stack Browser",
-                "kubespawner_override": {
-                    "cpu_limit": 1,
-                    "mem_limit": "8G",
-                    "image": "eoepca/stac-browser:main",
-                },
-            },
-        ]
-
-        if ["developer"] in self.user_groups:
-            profile_list.append(
-                {
-                    "display_name": "JupyterLab for developer",
-                    "slug": "iat_lab_developers",
-                    "default": True,
-                    "kubespawner_override": {
-                        "cpu_limit": 1,
-                        "mem_limit": "4G",
-                        "image": "jupyter/datascience-notebook",
-                        "default_url": "lab",
-                    },
-                },
-            )
-
-        return profile_list
+        return self.config_parser.get_profiles()
 
     def initialise(self):
 
-        self.env_vars["A_VAR"] = "A_VALUE"
+        # get the profile id from the profile definition slug
+        profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
 
-        self._set_pod_env_vars()
+        self.spawner.log.info(
+            f"Initialising {self.profile_slug} (profile id {profile_id})"
+        )
 
-        for config_map in self._get_config_maps():
+        # set the pod env vars
+        config_env_vars = self.config_parser.get_profile_pod_env_vars(
+            profile_id=profile_id
+        )
+        self.set_pod_env_vars(**(config_env_vars or {}))
 
-            try:
-                if not self.is_config_map_created(name=config_map["name"]):
-                    message = f"configMap {config_map['name']} does not "
-                    "exist in the namespace {self.namespace}"
-                    raise ValueError(message)
+        # process the config maps
+        config_maps = self.config_parser.get_profile_config_maps(profile_id=profile_id)
 
-                if "mountPath" in config_map.keys():
+        if config_maps:
+            for config_map in config_maps:
+
+                try:
+                    if not self.is_config_map_created(name=config_map.name):
+                        self.spawner.log.info(f"Creating configmap {config_map.name}")
+                        self.create_configmap(
+                            name=config_map.name,
+                            key=config_map.key,
+                            content=config_map.content,
+                            annotations=None,
+                            labels=None,
+                        )
+                    self.spawner.log.info(f"Mounting configmap {config_map.name}")
                     self.spawner.volume_mounts.extend(
                         [
                             {
-                                "name": config_map["name"],
-                                "mountPath": config_map["mountPath"],
-                                "subPath": config_map["key"],
+                                "name": config_map.name,
+                                "mountPath": config_map.mount_path,
+                                "subPath": config_map.key,
                             },
                         ]
                     )
@@ -270,49 +339,80 @@ class DefaulfApplicationHubContext(ApplicationHubContext):
                     self.spawner.volumes.extend(
                         [
                             {
-                                "name": config_map["name"],
-                                "configMap": {"name": config_map["key"]},
+                                "name": config_map.name,
+                                "configMap": {"name": config_map.key},
                             }
                         ]
                     )
-            except Exception as err:
-                print(f"Unexpected {err=}, {type(err)=}")
-                print(f"Skipping creation of configmap {config_map['name']}")
+                except Exception as err:
+                    self.spawner.log.error(f"Unexpected {err=}, {type(err)=}")
+                    self.spawner.log.error(
+                        f"Skipping creation of configmap {config_map.name}"
+                    )
+
+        #  process the volumes
+        volumes = self.config_parser.get_profile_volumes(profile_id=profile_id)
+
+        if volumes:
+            for volume in volumes:
+
+                self.spawner.log.info(f"Mounting volume {volume.name}")
+                try:
+
+                    if not self.is_pvc_created(name=volume.claim_name):
+                        self.spawner.log.info(
+                            f"Creating volume claim {volume.claim_name})"
+                        )
+                        self.create_pvc(
+                            name=volume.claim_name,
+                            access_modes=volume.access_modes,
+                            size=volume.size,
+                            storage_class=volume.storage_class,
+                        )
+                    self.spawner.log.info(
+                        f"Mounting volume {volume.name} (claim {volume.claim_name}))"
+                    )
+                    self.spawner.volume_mounts.extend(
+                        [
+                            {
+                                "name": volume.volume_mount.name,
+                                "mountPath": volume.volume_mount.mount_path,
+                            },
+                        ]
+                    )
+
+                    self.spawner.volumes.extend(
+                        [
+                            {
+                                "name": volume.name,
+                                "persistentVolumeClaim": {
+                                    "claimName": volume.claim_name
+                                },
+                            }
+                        ]
+                    )
+
+                except Exception as err:
+                    self.spawner.log.error(f"Unexpected {err}, {type(err)}")
+                    self.spawner.log.error(f"Skipping creation of volume {volume.name}")
 
     def dispose(self):
-        return True
 
-    def _set_pod_env_vars(self):
+        profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
 
-        for key, value in self.env_vars.items():
-            self.spawner.environment[key] = value
+        self.spawner.log.info(
+            f"Disposing {self.profile_slug} instance (profile id {profile_id})"
+        )
 
-    def _get_config_maps(self):
+        # deal with the volumes
+        volumes = self.config_parser.get_profile_volumes(profile_id=profile_id)
 
-        config_maps = {}
+        if volumes:
+            for volume in volumes:
 
-        config_maps["aws-config"] = {
-            "key": "aws-config",
-            "name": "aws-config",
-            "mountPath": "/home/jovyan/.aws/config",
-            "defaultMode": "0660",
-            "readOnly": "true",
-        }
+                if not volume.persist:
+                    self.spawner.log.info(
+                        f"Dispose volume {volume.name}, claim {volume.claim_name}"
+                    )
 
-        config_maps["aws-credentials"] = {
-            "key": "aws-credentials",
-            "name": "aws-credentials",
-            "mountPath": "/home/jovyan/.aws/credentials",
-            "defaultMode": "0660",
-            "readOnly": "true",
-        }
-
-        config_maps["docker-config"] = {
-            "key": "docker-config",
-            "name": "docker-config",
-            "mountPath": "/home/jovyan/.docker/config.json",
-            "defaultMode": "0660",
-            "readOnly": "true",
-        }
-
-        return config_maps.values()
+                    self.delete_pvc(name=volume.claim_name)
