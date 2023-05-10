@@ -6,9 +6,10 @@ A profile entry is defined as an entry in the `config.yml` file:
 
 ```yaml
 profiles:
-  - id: profile_1
-    ...
-  - id: profile_2
+- id: profile_1
+  ...
+- id: profile_2
+  ...
 ```
 
 A profile is defined with:
@@ -29,7 +30,7 @@ definition:
         cpu_limit: 4
         mem_limit: 8G
         image: eoepca/iat-jupyterlab:main
-# the default URL to redirect
+# the default URL to redirect (optional)
 default_url: "lab"
 # spawned pod environment variables (optional)
 pod_env_vars:
