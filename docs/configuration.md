@@ -52,17 +52,17 @@ With a configuration like:
 
 ```yaml
 profiles:
-  - id: profile_1
-    groups:
-    - group-A
-    - group-B
-    definition:
-    ...
-  - id: profile_2
-    groups:
-    - group-B
-    definition:
-    ...
+- id: profile_1
+  groups:
+  - group-A
+  - group-B
+  definition:
+  ...
+- id: profile_2
+  groups:
+  - group-B
+  definition:
+  ...
 ```
 
 A user that belongs to `group-A` is:
