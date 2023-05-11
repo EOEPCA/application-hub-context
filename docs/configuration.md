@@ -40,6 +40,8 @@ pod_env_vars:
 volumes: []
 # a list of config maps (optional)
 config_maps: []
+# kubernetes node pool selector
+node_selector: {}
 ```
 
 ## Understanding the groups
