@@ -288,6 +288,15 @@ class ApplicationHubContext(ABC):
         except ApiException as e:
             self.spawner.log.error(f"Exception deleting pvc {name}: {e}\n")
 
+    def delete_config_map(self, name):
+        try:
+            response = self.core_v1_api.delete_namespaced_config_map(
+                name=name, namespace=self.namespace
+            )
+            return response
+        except ApiException as e:
+            self.spawner.log.error(f"Exception deleting config map {name}: {e}\n")
+
 
 class DefaultApplicationHubContext(ApplicationHubContext):
     def get_profile_list(self):
@@ -403,6 +412,16 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         self.spawner.log.info(
             f"Disposing {self.profile_slug} instance (profile id {profile_id})"
         )
+
+        # process the config maps
+        config_maps = self.config_parser.get_profile_config_maps(profile_id=profile_id)
+        if config_maps:
+            for config_map in config_maps:
+
+                if not config_map.persist:
+                    self.spawner.log.info(f"Dispose config map {config_map.name}")
+
+                    self.delete_config_map(name=config_map.name)
 
         # deal with the volumes
         volumes = self.config_parser.get_profile_volumes(profile_id=profile_id)
