@@ -312,6 +312,24 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             f"Initialising {self.profile_slug} (profile id {profile_id})"
         )
 
+        self.spawner.image = self.config_parser.get_profile_by_slug(
+            slug=self.profile_slug
+        ).definition.kubespawner_override.image
+        self.spawner.cpu_limit = self.config_parser.get_profile_by_slug(
+            slug=self.profile_slug
+        ).definition.kubespawner_override.cpu_limit
+        self.spawner.mem_limit = self.config_parser.get_profile_by_slug(
+            slug=self.profile_slug
+        ).definition.kubespawner_override.mem_limit
+        self.spawner.node_selector = self.config_parser.get_profile_by_slug(
+            slug=self.profile_slug
+        ).node_selector
+        self.spawner.log.info(
+            f"Initialising pod with image {self.spawner.image} on node pool"
+            f"{self.spawner.node_selector}, cpu_limit: "
+            f"{self.spawner.cpu_limit}, mem_limit: {self.spawner.mem_limit}"
+        )
+
         # set the pod env vars
         config_env_vars = self.config_parser.get_profile_pod_env_vars(
             profile_id=profile_id

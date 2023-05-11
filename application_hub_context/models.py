@@ -89,6 +89,7 @@ class Profile(BaseModel):
     volumes: Optional[List[Volume]] = None
     pod_env_vars: Optional[dict] = None
     default_url: Optional[str] = None
+    node_selector: dict
 
 
 class Config(BaseModel):
