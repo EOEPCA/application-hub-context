@@ -1,5 +1,7 @@
 # Using JupyterHub API
 
+See https://jupyterhub.readthedocs.io/en/stable/reference/rest-api.html for more information on the JupyterHub API.
+
 ## Groups
 
 ### List groups
