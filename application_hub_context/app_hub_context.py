@@ -305,6 +305,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
     def initialise(self):
 
+        # set the spawner timeout to 10 minutes
+        self.spawner.http_timeout = 600
+
         # get the profile id from the profile definition slug
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
 
@@ -315,12 +318,29 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         self.spawner.image = self.config_parser.get_profile_by_slug(
             slug=self.profile_slug
         ).definition.kubespawner_override.image
+
+        # pod limits
         self.spawner.cpu_limit = self.config_parser.get_profile_by_slug(
             slug=self.profile_slug
         ).definition.kubespawner_override.cpu_limit
         self.spawner.mem_limit = self.config_parser.get_profile_by_slug(
             slug=self.profile_slug
         ).definition.kubespawner_override.mem_limit
+
+        # pod guarantees
+        cpu_guarantee = self.config_parser.get_profile_by_slug(
+            slug=self.profile_slug
+        ).definition.kubespawner_override.cpu_guarantee
+        if cpu_guarantee is not None:
+            self.spawner.cpu_guarantee = cpu_guarantee
+
+        mem_guarantee = self.config_parser.get_profile_by_slug(
+            slug=self.profile_slug
+        ).definition.kubespawner_override.mem_guarantee
+        if cpu_guarantee is not None:
+            self.spawner.mem_guarantee = mem_guarantee
+
+        # node selector
         self.spawner.node_selector = self.config_parser.get_profile_by_slug(
             slug=self.profile_slug
         ).node_selector

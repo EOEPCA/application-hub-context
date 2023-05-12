@@ -58,7 +58,9 @@ class ConfigMap(BaseModel):
 class KubespawnerOverride(BaseModel):
 
     cpu_limit: int
+    cpu_guarantee: Optional[int] = None
     mem_limit: str
+    mem_guarantee: Optional[str] = None
     image: str
 
 
