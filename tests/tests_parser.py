@@ -33,7 +33,8 @@ class TestConfigParser(unittest.TestCase):
                 },
             },
             "default_url": "lab",
-            "pod_env_vars": {"A": "10", "B": "20"},
+            "pod_env_vars": {"A": 10, "B": 20},
+            "node_selector": {"k8s.acme.com/pool-name": "processing-node-pool"},
         }
 
         self.assertEqual(self.ws_config_parser.config.profiles[0], Profile(**expected))
