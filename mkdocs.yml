@@ -22,5 +22,6 @@ plugins:
 
 nav:
   - Introduction: 'index.md'
+  - Kubernetes: 'k8s.md'
   - Configuration: 'configuration.md'
   - JupyterHub API: 'jupyterhub-api.md'

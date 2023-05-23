@@ -86,7 +86,7 @@ class ConfigParser:
             pass
 
     def get_profile_secret(self, profile_id):
-        """returns the profile config maps"""
+        """returns the profile secret"""
         try:
             return self.get_profile_by_id(profile_id=profile_id).image_pull_secret
         except AttributeError:
