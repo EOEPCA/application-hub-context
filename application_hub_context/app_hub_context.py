@@ -326,6 +326,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         self.spawner.mem_limit = self.config_parser.get_profile_by_slug(
             slug=self.profile_slug
         ).definition.kubespawner_override.mem_limit
+        self.spawner.extra_resource_limits = self.config_parser.get_profile_by_slug(
+            slug=self.profile_slug
+        ).definition.kubespawner_override.extra_resource_limits
 
         # pod guarantees
         cpu_guarantee = self.config_parser.get_profile_by_slug(
@@ -339,6 +342,13 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         ).definition.kubespawner_override.mem_guarantee
         if cpu_guarantee is not None:
             self.spawner.mem_guarantee = mem_guarantee
+
+        extra_resource_guarantee = self.config_parser.get_profile_by_slug(
+            slug=self.profile_slug
+        ).definition.kubespawner_override.extra_resource_limits
+
+        if extra_resource_guarantee is not None:
+            self.spawner.extra_resource_guarantees = extra_resource_guarantee
 
         # node selector
         self.spawner.node_selector = self.config_parser.get_profile_by_slug(
