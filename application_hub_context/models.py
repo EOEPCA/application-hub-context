@@ -62,8 +62,8 @@ class KubespawnerOverride(BaseModel):
     mem_limit: str
     mem_guarantee: Optional[str] = None
     image: str
-    extra_resource_limits: Optional[dict] = None
-    extra_resource_guarantees: Optional[dict] = None
+    extra_resource_limits: Optional[dict] = {}
+    extra_resource_guarantees: Optional[dict] = {}
 
 
 class ProfileDefinition(BaseModel):

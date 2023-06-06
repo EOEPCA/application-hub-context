@@ -76,6 +76,32 @@ A user belonging to `group-B` is
 - able to spawn the application defined in the `profile_2`.
 
 
+## Profile definition
+
+A `profile definition` example is shown below:
+
+```yaml
+definition:
+  display_name: Profile 1
+  slug: profile_1_slug
+  default: False
+  kubespawner_override:
+    cpu_limit: 4
+    mem_limit: 8G
+    image: eoepca/iat-jupyterlab:main
+```
+
+The `kubespawner_override` can also include `extra_resource_limits` and `extra_resource_guarantees` to provide GPUs:
+
+```yaml
+kubespawner_override:
+  cpu_limit: 4
+  mem_limit: 8G
+  image: eoepca/iat-jupyterlab:main
+  extra_resource_limits: {"nvidia.com/gpu": "1"}
+  extra_resource_guarantees: {"nvidia.com/gpu": "1"}
+```
+
 ## Volumes
 
 A volume is defined with:
