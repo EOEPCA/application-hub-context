@@ -1,13 +1,10 @@
 name: Build and Publish Docker
 
 on:
-  workflow_dispatch:
-    inputs:
-      push:
-        description: 'Push to dockerhub'
-        type: boolean
-        default: true
-
+  push:
+    branches:
+      - develop
+      - main
 jobs:
   build-and-publish-docker:
     runs-on: ubuntu-latest
