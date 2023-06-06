@@ -6,7 +6,7 @@ on:
       push:
         description: 'Push to dockerhub'
         type: boolean
-        default: false
+        default: true
 
 jobs:
   build-and-publish-docker:
