@@ -1,0 +1,21 @@
+name: env_context
+channels:
+  - terradue
+  - conda-forge
+dependencies:
+  - click
+  - black
+  - pre-commit
+  - isort
+  - flake8
+  - autoflake
+  - pylint
+  - nose2
+  - cwltool
+  - pyyaml
+  - pip:
+    - kubernetes
+    - loguru
+    - munch
+    - addict
+    - pydantic
