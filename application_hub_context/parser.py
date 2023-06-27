@@ -56,7 +56,6 @@ class ConfigParser:
             return []
 
     def get_profile_by_slug(self, slug):
-
         try:
             return [
                 profile

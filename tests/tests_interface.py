@@ -50,23 +50,18 @@ class TestConstructor(unittest.TestCase):
         )
 
     def test_obj(self):
-
         self.assertIs(type(self.app_hub_context), DefaulfApplicationHubContext)
 
     def test_kwarg_1(self):
-
         self.assertEqual(self.app_hub_context.a, 1)
 
     def test_kwarg_2(self):
-
         self.assertTrue(hasattr(self.app_hub_context, "b"))
 
     def test_profile_slug_1(self):
-
         self.assertEqual(self.app_hub_context.profile_slug, "selected_slug")
 
     def test_pod_env_vars(self):
-
         self.app_hub_context.env_vars["A_VAR"] = "A_VALUE"
 
         self.app_hub_context._set_pod_env_vars()

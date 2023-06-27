@@ -21,7 +21,6 @@ class ApplicationHubContext(ABC):
         kubeconfig_file: TextIO = None,
         **kwargs,
     ):
-
         # k8s
         self.kubeconfig_file = kubeconfig_file
         self.api_client = self._get_api_client(self.kubeconfig_file)
@@ -47,7 +46,6 @@ class ApplicationHubContext(ABC):
         self.__dict__.update(kwargs)
 
     def set_pod_env_vars(self, **kwargs):
-
         extended_vars = {**self.env_vars, **kwargs}
 
         for key, value in extended_vars.items():
@@ -55,7 +53,6 @@ class ApplicationHubContext(ABC):
 
     @staticmethod
     def _get_api_client(kubeconfig_file: TextIO = None):
-
         try:
             config.load_incluster_config()  # raises if not in cluster
             api_client = client.ApiClient()
@@ -88,19 +85,15 @@ class ApplicationHubContext(ABC):
         return api_client
 
     def _get_core_v1_api(self) -> client.CoreV1Api:
-
         return client.CoreV1Api(api_client=self.api_client)
 
     def _get_batch_v1_api(self) -> client.BatchV1Api:
-
         return client.BatchV1Api(api_client=self.api_client)
 
     def _get_rbac_authorization_v1_api(self) -> client.RbacAuthorizationApi:
-
         return client.RbacAuthorizationV1Api(self.api_client)
 
     def is_object_created(self, read_method, **kwargs):
-
         read_methods = {}
 
         read_methods["read_namespace"] = self.core_v1_api.read_namespace
@@ -141,7 +134,6 @@ class ApplicationHubContext(ABC):
         return read_methods
 
     def is_namespace_created(self, **kwargs):
-
         return self.is_object_created("read_namespace", **kwargs)
 
     def is_namespace_deleted(self, **kwargs):
@@ -149,25 +141,20 @@ class ApplicationHubContext(ABC):
         return not self.is_namespace_created()
 
     def is_role_binding_created(self, **kwargs):
-
         return self.is_object_created("read_namespaced_role_binding", **kwargs)
 
     def is_role_created(self, **kwargs):
-
         return self.is_object_created("read_namespaced_role", **kwargs)
 
     def is_config_map_created(self, **kwargs):
-
         return self.is_object_created("read_namespaced_config_map", **kwargs)
 
     def is_pvc_created(self, **kwargs):
-
         return self.is_object_created(
             "read_namespaced_persistent_volume_claim", **kwargs
         )  # noqa: E501
 
     def is_image_pull_secret_created(self, **kwargs):
-
         return self.is_object_created("read_namespaced_secret", **kwargs)
 
     def get_profile_list(self):
@@ -300,11 +287,9 @@ class ApplicationHubContext(ABC):
 
 class DefaultApplicationHubContext(ApplicationHubContext):
     def get_profile_list(self):
-
         return self.config_parser.get_profiles()
 
     def initialise(self):
-
         # set the spawner timeout to 10 minutes
         self.spawner.http_timeout = 600
 
@@ -377,7 +362,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
         if config_maps:
             for config_map in config_maps:
-
                 try:
                     if not self.is_config_map_created(name=config_map.name):
                         self.spawner.log.info(f"Creating configmap {config_map.name}")
@@ -418,10 +402,8 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
         if volumes:
             for volume in volumes:
-
                 self.spawner.log.info(f"Mounting volume {volume.name}")
                 try:
-
                     if not self.is_pvc_created(name=volume.claim_name):
                         self.spawner.log.info(
                             f"Creating volume claim {volume.claim_name})"
@@ -460,7 +442,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     self.spawner.log.error(f"Skipping creation of volume {volume.name}")
 
     def dispose(self):
-
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
 
         self.spawner.log.info(
@@ -471,7 +452,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         config_maps = self.config_parser.get_profile_config_maps(profile_id=profile_id)
         if config_maps:
             for config_map in config_maps:
-
                 if not config_map.persist:
                     self.spawner.log.info(f"Dispose config map {config_map.name}")
 
@@ -482,7 +462,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
         if volumes:
             for volume in volumes:
-
                 if not volume.persist:
                     self.spawner.log.info(
                         f"Dispose volume {volume.name}, claim {volume.claim_name}"

@@ -43,7 +43,6 @@ spawner.profile_list = [
 class TestK8s(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-
         os.environ["KUBECONFIG"] = "/home/mambauser/.kube/kubeconfig-t2-dev.yaml"
 
         cls.app_hub_context = DefaulfApplicationHubContext(
@@ -55,21 +54,17 @@ class TestK8s(unittest.TestCase):
         )
 
     def test_obj(self):
-
         self.assertIs(type(self.app_hub_context), DefaulfApplicationHubContext)
 
     def test_client(self):
-
         self.assertIsInstance(self.app_hub_context._get_core_v1_api(), client.CoreV1Api)
 
     def test_batch(self):
-
         self.assertIsInstance(
             self.app_hub_context._get_batch_v1_api(), client.BatchV1Api
         )
 
     def test_rbac(self):
-
         self.assertIsInstance(
             self.app_hub_context._get_rbac_authorization_v1_api(),
             client.RbacAuthorizationApi,

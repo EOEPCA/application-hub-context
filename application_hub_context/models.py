@@ -49,14 +49,13 @@ class ConfigMap(BaseModel):
     name: str
     key: str
     mount_path: str
-    default_mode: str
+    default_mode: Optional[str]
     readonly: bool
     content: Optional[str] = None
     persist: Optional[bool] = True
 
 
 class KubespawnerOverride(BaseModel):
-
     cpu_limit: int
     cpu_guarantee: Optional[int] = None
     mem_limit: str
@@ -85,7 +84,6 @@ class ProfileDefinition(BaseModel):
 
 
 class Profile(BaseModel):
-
     id: str
     groups: List[str]
     definition: ProfileDefinition
@@ -97,5 +95,4 @@ class Profile(BaseModel):
 
 
 class Config(BaseModel):
-
     profiles: List[Profile]
