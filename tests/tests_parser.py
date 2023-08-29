@@ -1,6 +1,6 @@
 import unittest
 
-from application_hub_context.models import ConfigMap, Profile
+from application_hub_context.models import ConfigMap, Profile, ConfigMapEnvVarReference
 from application_hub_context.parser import ConfigParser
 
 
@@ -31,7 +31,7 @@ class TestConfigParser(unittest.TestCase):
                 },
             },
             "default_url": "lab",
-            "pod_env_vars": {"A": 10, "B": 20},
+            "pod_env_vars": {"A": "10", "B": "20"},
             "node_selector": {"k8s.acme.com/pool-name": "processing-node-pool"},
         }
 
@@ -74,9 +74,27 @@ class TestConfigParser(unittest.TestCase):
         )
 
     def test_get_profile_env_vars(self):
-        expected = {"A": 10, "B": 20}
+        expected = {"A": "10", "B": "20"}
         self.assertDictEqual(
             self.ws_config_parser.get_profile_pod_env_vars(profile_id="profile_1"),
+            expected,
+        )
+
+    def test_get_profile_env_vars_ref(self):
+        expected = {
+            "A": "10",
+            "B": "20",
+            "GITLAB_TOKEN": ConfigMapEnvVarReference(
+                valueFrom={
+                    "configMapKeyRef": {
+                        "name": "gitlabenv",
+                        "key": "GITLAB_TOKEN"
+                    }
+                }
+            )
+        }
+        self.assertEqual(
+            self.ws_config_parser.get_profile_pod_env_vars(profile_id="profile_2"),
             expected,
         )
 

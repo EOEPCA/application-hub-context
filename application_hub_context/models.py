@@ -83,13 +83,26 @@ class ProfileDefinition(BaseModel):
     kubespawner_override: KubespawnerOverride
 
 
+class ConfigMapKeyRef(BaseModel):
+    name: str
+    key: str
+
+
+class ConfigMapValueFrom(BaseModel):
+    configMapKeyRef: ConfigMapKeyRef
+
+
+class ConfigMapEnvVarReference(BaseModel):
+    valueFrom: ConfigMapValueFrom
+
+
 class Profile(BaseModel):
     id: str
     groups: List[str]
     definition: ProfileDefinition
     config_maps: Optional[List[ConfigMap]] = None
     volumes: Optional[List[Volume]] = None
-    pod_env_vars: Optional[dict] = None
+    pod_env_vars: Optional[dict[str, str|ConfigMapEnvVarReference]] = None
     default_url: Optional[str] = None
     node_selector: dict
 
