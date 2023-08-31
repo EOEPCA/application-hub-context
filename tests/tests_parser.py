@@ -1,6 +1,6 @@
 import unittest
 
-from application_hub_context.models import ConfigMap, Profile, ConfigMapEnvVarReference
+from application_hub_context.models import ConfigMap, ConfigMapEnvVarReference, Profile
 from application_hub_context.parser import ConfigParser
 
 
@@ -86,12 +86,9 @@ class TestConfigParser(unittest.TestCase):
             "B": "20",
             "GITLAB_TOKEN": ConfigMapEnvVarReference(
                 valueFrom={
-                    "configMapKeyRef": {
-                        "name": "gitlabenv",
-                        "key": "GITLAB_TOKEN"
-                    }
+                    "configMapKeyRef": {"name": "gitlabenv", "key": "GITLAB_TOKEN"}
                 }
-            )
+            ),
         }
         self.assertEqual(
             self.ws_config_parser.get_profile_pod_env_vars(profile_id="profile_2"),

@@ -9,6 +9,7 @@ from kubernetes.client import Configuration
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 
+from application_hub_context.models import ConfigMapEnvVarReference
 from application_hub_context.parser import ConfigParser
 
 
@@ -49,7 +50,22 @@ class ApplicationHubContext(ABC):
         extended_vars = {**self.env_vars, **kwargs}
 
         for key, value in extended_vars.items():
-            self.spawner.environment[key] = str(value)
+            if isinstance(value, str):
+                # If value is a simple string
+                self.spawner.environment[key] = value
+            elif isinstance(value, ConfigMapEnvVarReference):
+                # If value must be retrieved from an existing configmap
+                configMapName = value.valueFrom.configMapKeyRef.name
+                configMapNameKey = value.valueFrom.configMapKeyRef.key
+                try:
+                    api_response = self.core_v1_api.read_namespaced_config_map(
+                        name=configMapName, namespace=self.namespace
+                    )
+                    self.spawner.environment[configMapNameKey] = api_response.data[
+                        configMapNameKey
+                    ]
+                except ApiException as e:
+                    print("Exception in read_namespaced_config_map: %s\n" % e)
 
     @staticmethod
     def _get_api_client(kubeconfig_file: TextIO = None):
@@ -74,7 +90,7 @@ class ApplicationHubContext(ABC):
             config.load_kube_config(config_file=kubeconfig)
             api_client = client.ApiClient()
         elif kubeconfig_file:
-            config.load_kube_config(config_file=kubeconfig)
+            config.load_kube_config(config_file=kubeconfig_file)
             api_client = client.ApiClient()
         else:
             # if nothing is specified, kubernetes-python will use the file

@@ -102,7 +102,7 @@ class Profile(BaseModel):
     definition: ProfileDefinition
     config_maps: Optional[List[ConfigMap]] = None
     volumes: Optional[List[Volume]] = None
-    pod_env_vars: Optional[dict[str, str|ConfigMapEnvVarReference]] = None
+    pod_env_vars: Optional[dict[str, str | ConfigMapEnvVarReference]] = None
     default_url: Optional[str] = None
     node_selector: dict
 
