@@ -71,10 +71,10 @@ class TestConstructor(unittest.TestCase):
         self.assertEqual(self.app_hub_context.spawner.environment["A_VAR"], "A_VALUE")
 
     def test_pod_env_vars_from_configmap(self):
-        self.app_hub_context.env_vars["A_VAR"] = ConfigMapEnvVarReference(
+        self.app_hub_context.env_vars["A_VAR_1"] = ConfigMapEnvVarReference(
             valueFrom={"configMapKeyRef": {"name": "gitlabenv", "key": "GITLAB_TOKEN"}}
         )
         self.app_hub_context.set_pod_env_vars()
         self.assertEqual(
-            self.app_hub_context.spawner.environment["GITLAB_TOKEN"], "adafeaflwejfowe"
+            self.app_hub_context.spawner.environment["A_VAR_1"], "adafeaflwejfowe"
         )

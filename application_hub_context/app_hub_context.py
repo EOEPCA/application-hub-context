@@ -61,9 +61,7 @@ class ApplicationHubContext(ABC):
                     api_response = self.core_v1_api.read_namespaced_config_map(
                         name=configMapName, namespace=self.namespace
                     )
-                    self.spawner.environment[configMapNameKey] = api_response.data[
-                        configMapNameKey
-                    ]
+                    self.spawner.environment[key] = api_response.data[configMapNameKey]
                 except ApiException as e:
                     print("Exception in read_namespaced_config_map: %s\n" % e)
 
