@@ -62,7 +62,7 @@ class ApplicationHubContext(ABC):
                         name=configMapName, namespace=self.namespace
                     )
                     if configMapNameKey not in api_response.data:
-                        raise Exception(
+                        raise KeyError(
                             f"Key {configMapNameKey} not found "
                             f"in config map {configMapName}"
                         )
@@ -70,7 +70,7 @@ class ApplicationHubContext(ABC):
                 except ApiException as e:
                     print("Exception in read_namespaced_config_map: %s\n" % e)
                     raise
-                except Exception as e:
+                except KeyError as e:
                     print("Configuration error: %s\n" % e)
                     raise
 
