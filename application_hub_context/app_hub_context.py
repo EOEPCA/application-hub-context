@@ -61,9 +61,18 @@ class ApplicationHubContext(ABC):
                     api_response = self.core_v1_api.read_namespaced_config_map(
                         name=configMapName, namespace=self.namespace
                     )
+                    if configMapNameKey not in api_response.data:
+                        raise Exception(
+                            f"Key {configMapNameKey} not found "
+                            f"in config map {configMapName}"
+                        )
                     self.spawner.environment[key] = api_response.data[configMapNameKey]
                 except ApiException as e:
                     print("Exception in read_namespaced_config_map: %s\n" % e)
+                    raise
+                except Exception as e:
+                    print("Configuration error: %s\n" % e)
+                    raise
 
     @staticmethod
     def _get_api_client(kubeconfig_file: TextIO = None):

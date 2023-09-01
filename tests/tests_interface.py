@@ -78,3 +78,29 @@ class TestConstructor(unittest.TestCase):
         self.assertEqual(
             self.app_hub_context.spawner.environment["A_VAR_1"], "adafeaflwejfowe"
         )
+
+    def test_pod_env_vars_from_configmap_wrong_configmap(self):
+        self.app_hub_context.env_vars["A_VAR_2"] = ConfigMapEnvVarReference(
+            valueFrom={"configMapKeyRef": {"name": "gitlabenv_wrong", "key": "GITLAB_TOKEN"}}
+        )
+        try:
+            self.app_hub_context.set_pod_env_vars()
+            self.assertTrue(False)   # exception should be thrown in previous line
+        except Exception as e:
+            print("\n========\nEXCEPTION: {0}\n{1}".format(type(e), str(e)))
+            self.assertEqual(
+                self.app_hub_context.spawner.environment["A_VAR_2"], "adafeaflwejfowe"
+            )
+
+    def test_pod_env_vars_from_configmap_wrong_key(self):
+        self.app_hub_context.env_vars["A_VAR_3"] = ConfigMapEnvVarReference(
+            valueFrom={"configMapKeyRef": {"name": "gitlabenv", "key": "GITLAB_TOKEN_WRONG"}}
+        )
+        try:
+            self.app_hub_context.set_pod_env_vars()
+            self.assertTrue(False)   # exception should be thrown in previous line
+        except Exception as e:
+            print("\n========\nEXCEPTION: {0}\n{1}".format(type(e), str(e)))
+            self.assertEqual(
+                self.app_hub_context.spawner.environment["A_VAR_2"], "adafeaflwejfowe"
+            )
