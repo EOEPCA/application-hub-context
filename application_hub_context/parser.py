@@ -104,3 +104,10 @@ class ConfigParser:
             return self.get_profile_by_id(profile_id=profile_id).default_url
         except AttributeError:
             pass
+
+    def get_profile_role_bindings(self, profile_id):
+        """returns the profile role bindings"""
+        try:
+            return self.get_profile_by_id(profile_id=profile_id).role_bindings
+        except AttributeError:
+            pass

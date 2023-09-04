@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -92,6 +93,41 @@ class ConfigMapEnvVarReference(BaseModel):
     from_config_map: ConfigMapKeyRef
 
 
+class SubjectKind(str, Enum):
+    service_account = "ServiceAccount"
+    user = "User"
+
+
+class Verb(str, Enum):
+    get = "get"
+    list = "list"
+    watch = "watch"
+    create = "create"
+    update = "update"
+    patch = "patch"
+    delete = "delete"
+    deletecollection = "deletecollection"
+
+
+class Subject(BaseModel):
+    name: str
+    kind: SubjectKind
+
+
+class Role(BaseModel):
+    name: str
+    resources: List[str]
+    verbs: List[Verb]
+    api_groups: Optional[List[str]] = [""]
+
+
+class RoleBinding(BaseModel):
+    name: str
+    subjects: List[Subject]
+    role: Role
+    persist: bool = True
+
+
 class Profile(BaseModel):
     id: str
     groups: List[str]
@@ -101,6 +137,7 @@ class Profile(BaseModel):
     pod_env_vars: Optional[dict[str, str | ConfigMapEnvVarReference]] = None
     default_url: Optional[str] = None
     node_selector: dict
+    role_bindings: Optional[List[RoleBinding]] = None
 
 
 class Config(BaseModel):
