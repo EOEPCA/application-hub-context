@@ -61,7 +61,7 @@ profiles:
       A: "10"
       B: "20"
       GITLAB_TOKEN:
-        from_configmap:
+        from_config_map:
           name: gitlabenv
           key: GITLAB_TOKEN
   - id: profile_3

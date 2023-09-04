@@ -89,7 +89,7 @@ class ConfigMapKeyRef(BaseModel):
 
 
 class ConfigMapEnvVarReference(BaseModel):
-    from_configmap: ConfigMapKeyRef
+    from_config_map: ConfigMapKeyRef
 
 
 class Profile(BaseModel):

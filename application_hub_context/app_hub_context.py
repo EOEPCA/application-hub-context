@@ -55,18 +55,18 @@ class ApplicationHubContext(ABC):
                 self.spawner.environment[key] = value
             elif isinstance(value, ConfigMapEnvVarReference):
                 # If value must be retrieved from an existing configmap
-                configMapName = value.valueFrom.configMapKeyRef.name
-                configMapNameKey = value.valueFrom.configMapKeyRef.key
+                config_map_name = value.from_config_map.name
+                config_map_key = value.from_config_map.key
                 try:
                     api_response = self.core_v1_api.read_namespaced_config_map(
-                        name=configMapName, namespace=self.namespace
+                        name=config_map_name, namespace=self.namespace
                     )
-                    if configMapNameKey not in api_response.data:
+                    if config_map_key not in api_response.data:
                         raise KeyError(
-                            f"Key {configMapNameKey} not found "
-                            f"in config map {configMapName}"
+                            f"Key '{config_map_key}' not found "
+                            f"in config map '{config_map_name}'"
                         )
-                    self.spawner.environment[key] = api_response.data[configMapNameKey]
+                    self.spawner.environment[key] = api_response.data[config_map_key]
                 except ApiException as e:
                     print("Exception in read_namespaced_config_map: %s\n" % e)
                     raise

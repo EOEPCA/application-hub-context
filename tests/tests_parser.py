@@ -85,7 +85,7 @@ class TestConfigParser(unittest.TestCase):
             "A": "10",
             "B": "20",
             "GITLAB_TOKEN": ConfigMapEnvVarReference(
-                from_configmap={"name": "gitlabenv", "key": "GITLAB_TOKEN"}
+                from_config_map={"name": "gitlabenv", "key": "GITLAB_TOKEN"}
             ),
         }
         self.assertEqual(
