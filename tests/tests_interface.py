@@ -73,7 +73,7 @@ class TestConstructor(unittest.TestCase):
 
     def test_pod_env_vars_from_configmap(self):
         self.app_hub_context.env_vars["A_VAR_1"] = ConfigMapEnvVarReference(
-            valueFrom={"configMapKeyRef": {"name": "gitlabenv", "key": "GITLAB_TOKEN"}}
+            from_config_map={"name": "gitlabenv", "key": "GITLAB_TOKEN"}
         )
         self.app_hub_context.set_pod_env_vars()
         self.assertEqual(
@@ -82,18 +82,14 @@ class TestConstructor(unittest.TestCase):
 
     def test_pod_env_vars_from_configmap_wrong_configmap(self):
         self.app_hub_context.env_vars["A_VAR_2"] = ConfigMapEnvVarReference(
-            valueFrom={
-                "configMapKeyRef": {"name": "gitlabenv_wrong", "key": "GITLAB_TOKEN"}
-            }
+            from_config_map={"name": "gitlabenv_wrong", "key": "GITLAB_TOKEN"}
         )
         with self.assertRaises(ApiException):
             self.app_hub_context.set_pod_env_vars()
 
     def test_pod_env_vars_from_configmap_wrong_key(self):
         self.app_hub_context.env_vars["A_VAR_3"] = ConfigMapEnvVarReference(
-            valueFrom={
-                "configMapKeyRef": {"name": "gitlabenv", "key": "GITLAB_TOKEN_WRONG"}
-            }
+            from_config_map={"name": "gitlabenv", "key": "GITLAB_TOKEN_WRONG"}
         )
         with self.assertRaises(KeyError):
             self.app_hub_context.set_pod_env_vars()
