@@ -148,3 +148,10 @@ class TestConfigParser(unittest.TestCase):
         )
 
         self.assertIsNotNone(config_maps)
+
+    def test_get_role_bindings(self):
+        role_bindings = self.ws_config_parser.get_profile_role_bindings(
+            profile_id="profile_1"
+        )
+
+        self.assertIsNotNone(role_bindings)

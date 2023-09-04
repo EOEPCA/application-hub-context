@@ -307,6 +307,84 @@ class ApplicationHubContext(ABC):
         except ApiException as e:
             self.spawner.log.error(f"Exception deleting config map {name}: {e}\n")
 
+    def create_role_binding(self, name: str, role: str):
+        if self.is_role_binding_created(name=name):
+            return self.rbac_authorization_v1_api.read_namespaced_role_binding(
+                name=name, namespace=self.namespace
+            )
+
+        metadata = client.V1ObjectMeta(name=name, namespace=self.namespace)
+
+        role_ref = client.V1RoleRef(api_group="", kind="Role", name=role)
+
+        subject = client.models.V1Subject(
+            api_group="",
+            kind="ServiceAccount",
+            name="default",
+            namespace=self.namespace,
+        )
+
+        body = client.V1RoleBinding(
+            metadata=metadata, role_ref=role_ref, subjects=[subject]
+        )  # noqa: E501
+
+        try:
+            response = self.rbac_authorization_v1_api.create_namespaced_role_binding(  # noqa: E501
+                self.namespace, body, pretty=True
+            )
+
+            if not self.retry(self.is_role_binding_created, name=name):
+                raise ApiException(http_resp=response)
+            print(f"role binding {name} created")
+            return response
+        except ApiException as e:
+            print(
+                f"role binding {name} not created in the time interval assigned:"
+                f" Exception when calling get status: {e}\n"
+            )
+            raise e
+
+    def create_role(
+        self,
+        name: str,
+        verbs: list,
+        resources: list = ["pods", "pods/log"],
+        api_groups: list = ["*"],
+    ):
+        if self.is_role_created(name=name):
+            return self.rbac_authorization_v1_api.read_namespaced_role(
+                name=name, namespace=self.namespace
+            )
+
+        metadata = client.V1ObjectMeta(name=name, namespace=self.namespace)
+
+        rule = client.V1PolicyRule(
+            api_groups=api_groups,
+            resources=resources,
+            verbs=verbs,
+        )
+
+        body = client.V1Role(metadata=metadata, rules=[rule])
+
+        try:
+            response = (
+                self.rbac_authorization_v1_api.create_namespaced_role(  # noqa: E501
+                    self.namespace, body, pretty=True
+                )
+            )
+
+            if not self.retry(self.is_role_created, name=name):
+                raise ApiException(http_resp=response)
+            print(f"role {name} created")
+            return response
+
+        except ApiException as e:
+            print(
+                f"role {name} not created in the time interval assigned: "
+                f"Exception when calling get status: {e}\n"
+            )
+            raise e
+
 
 class DefaultApplicationHubContext(ApplicationHubContext):
     def get_profile_list(self):
