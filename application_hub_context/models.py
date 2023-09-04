@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -134,7 +134,7 @@ class Profile(BaseModel):
     definition: ProfileDefinition
     config_maps: Optional[List[ConfigMap]] = None
     volumes: Optional[List[Volume]] = None
-    pod_env_vars: Optional[dict[str, str | ConfigMapEnvVarReference]] = None
+    pod_env_vars: Optional[dict[str, Union[str, ConfigMapEnvVarReference]]] = None
     default_url: Optional[str] = None
     node_selector: dict
     role_bindings: Optional[List[RoleBinding]] = None
