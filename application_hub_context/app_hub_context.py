@@ -9,7 +9,13 @@ from kubernetes.client import Configuration
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 
-from application_hub_context.models import ConfigMapEnvVarReference, Role, Subject, Verb
+from application_hub_context.models import (
+    ConfigMapEnvVarReference,
+    Role,
+    RoleBinding,
+    Subject,
+    Verb,
+)
 from application_hub_context.parser import ConfigParser
 
 
@@ -307,14 +313,24 @@ class ApplicationHubContext(ABC):
         except ApiException as e:
             self.spawner.log.error(f"Exception deleting config map {name}: {e}\n")
 
-    def delete_role_binding(self, name):
+    def delete_role_binding(self, role_binding: RoleBinding):
         try:
-            response = self.rbac_authorization_v1_api.delete_namespaced_role_binding(
-                name=name, namespace=self.namespace
+            self.rbac_authorization_v1_api.delete_namespaced_role_binding(
+                name=role_binding.name, namespace=self.namespace
             )
-            return response
         except ApiException as e:
-            self.spawner.log.error(f"Exception deleting role binding {name}: {e}\n")
+            self.spawner.log.error(
+                f"Exception deleting role binding {role_binding.name}: {e}\n"
+            )
+
+        try:
+            self.rbac_authorization_v1_api.delete_namespaced_role(
+                name=role_binding.role.name, namespace=self.namespace
+            )
+        except ApiException as e:
+            self.spawner.log.error(
+                f"Exception deleting role {role_binding.role.name}: {e}\n"
+            )
 
     def create_role_binding(self, name: str, subjects: [Subject], role: Role):
         if self.is_role_binding_created(name=name):
@@ -627,4 +643,4 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             for role_binding in role_bindings:
                 if not role_binding.persist:
                     self.spawner.log.info(f"Dispose role binding {role_binding.name}")
-                    self.delete_role_binding(name=role_binding)
+                    self.delete_role_binding(role_binding=role_binding)
