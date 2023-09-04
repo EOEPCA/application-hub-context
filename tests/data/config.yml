@@ -61,10 +61,9 @@ profiles:
       A: "10"
       B: "20"
       GITLAB_TOKEN:
-        valueFrom:
-          configMapKeyRef:
-            name: gitlabenv
-            key: GITLAB_TOKEN
+        from_configmap:
+          name: gitlabenv
+          key: GITLAB_TOKEN
   - id: profile_3
     groups:
     - group-3

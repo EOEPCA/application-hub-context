@@ -4,7 +4,7 @@ import unittest
 from addict import Dict
 from kubernetes import client
 
-from application_hub_context.app_hub_context import DefaulfApplicationHubContext
+from application_hub_context.app_hub_context import DefaultApplicationHubContext
 
 group = Dict()
 group.name = "group_a"

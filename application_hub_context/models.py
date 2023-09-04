@@ -88,12 +88,8 @@ class ConfigMapKeyRef(BaseModel):
     key: str
 
 
-class ConfigMapValueFrom(BaseModel):
-    configMapKeyRef: ConfigMapKeyRef
-
-
 class ConfigMapEnvVarReference(BaseModel):
-    valueFrom: ConfigMapValueFrom
+    from_configmap: ConfigMapKeyRef
 
 
 class Profile(BaseModel):
