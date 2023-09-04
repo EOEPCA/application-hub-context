@@ -9,7 +9,7 @@ from kubernetes.client import Configuration
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 
-from application_hub_context.models import ConfigMapEnvVarReference, Subject, Verb
+from application_hub_context.models import ConfigMapEnvVarReference, Role, Subject, Verb
 from application_hub_context.parser import ConfigParser
 
 
@@ -316,7 +316,7 @@ class ApplicationHubContext(ABC):
         except ApiException as e:
             self.spawner.log.error(f"Exception deleting role binding {name}: {e}\n")
 
-    def create_role_binding(self, name: str, subjects: [Subject], role: str):
+    def create_role_binding(self, name: str, subjects: [Subject], role: Role):
         if self.is_role_binding_created(name=name):
             return self.rbac_authorization_v1_api.read_namespaced_role_binding(
                 name=name, namespace=self.namespace
@@ -566,20 +566,22 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                         if not self.is_role_binding_created(name=role_binding.name):
 
                             # checking if role is already created
-                            if not self.is_role_created(name=role_binding.role):
+                            if not self.is_role_created(name=role_binding.role.name):
                                 self.spawner.log.info(
-                                    f"Creating role {role_binding.role}"
+                                    f"Creating role {role_binding.role.name}"
                                 )
                                 self.create_role(
-                                    name=role_binding.role,
-                                    verbs=role_binding.verbs,
-                                    resources=role_binding.resources,
-                                    api_groups=role_binding.api_groups,
+                                    name=role_binding.role.name,
+                                    verbs=role_binding.role.verbs,
+                                    resources=role_binding.role.resources,
+                                    api_groups=role_binding.role.api_groups,
                                 )
 
                             # creating role binding
                             self.create_role_binding(
-                                name=role_binding.name, role=role_binding.role.name
+                                name=role_binding.name,
+                                role=role_binding.role,
+                                subjects=role_binding.subjects,
                             )
 
                     except Exception as err:
