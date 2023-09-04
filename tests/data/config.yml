@@ -16,23 +16,6 @@ profiles:
       B: "20"
     node_selector:
       k8s.acme.com/pool-name: processing-node-pool
-    role_bindings:
-      - name: pod_reader_role_binding
-        subjects:
-          - name: default
-            kind: ServiceAccount
-          - name: eric
-            kind: User
-        role:
-            name: pod_reader_role
-            api_group: rbac.authorization.k8s.io
-            verbs:
-              - get
-              - list
-              - watch
-            resources:
-              - pods
-        persist: false
 
   - id: profile_2
     groups:
@@ -81,6 +64,24 @@ profiles:
         from_config_map:
           name: gitlabenv
           key: GITLAB_TOKEN
+    role_bindings:
+      - name: pod_reader_role_binding
+        subjects:
+          - name: default
+            kind: ServiceAccount
+          - name: eric
+            kind: User
+        role:
+            name: pod_reader_role
+            api_group: rbac.authorization.k8s.io
+            verbs:
+              - get
+              - list
+              - watch
+            resources:
+              - pods
+        persist: false
+
   - id: profile_3
     groups:
     - group-3
