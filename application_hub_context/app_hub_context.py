@@ -9,7 +9,7 @@ from kubernetes.client import Configuration
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 
-from application_hub_context.models import ConfigMapEnvVarReference
+from application_hub_context.models import ConfigMapEnvVarReference, Subject, Verb
 from application_hub_context.parser import ConfigParser
 
 
@@ -307,7 +307,16 @@ class ApplicationHubContext(ABC):
         except ApiException as e:
             self.spawner.log.error(f"Exception deleting config map {name}: {e}\n")
 
-    def create_role_binding(self, name: str, role: str):
+    def delete_role_binding(self, name):
+        try:
+            response = self.rbac_authorization_v1_api.delete_namespaced_role_binding(
+                name=name, namespace=self.namespace
+            )
+            return response
+        except ApiException as e:
+            self.spawner.log.error(f"Exception deleting role binding {name}: {e}\n")
+
+    def create_role_binding(self, name: str, subjects: [Subject], role: str):
         if self.is_role_binding_created(name=name):
             return self.rbac_authorization_v1_api.read_namespaced_role_binding(
                 name=name, namespace=self.namespace
@@ -315,17 +324,20 @@ class ApplicationHubContext(ABC):
 
         metadata = client.V1ObjectMeta(name=name, namespace=self.namespace)
 
-        role_ref = client.V1RoleRef(api_group="", kind="Role", name=role)
+        role_ref = client.V1RoleRef(api_group="", kind="Role", name=role.name)
 
-        subject = client.models.V1Subject(
-            api_group="",
-            kind="ServiceAccount",
-            name="default",
-            namespace=self.namespace,
-        )
+        subject_list = []
+        for subject in subjects:
+            subject = client.models.V1Subject(
+                api_group="",
+                kind=subject.kind.value,
+                name=subject.name,
+                namespace=self.namespace,
+            )
+            subject_list.append(subject)
 
         body = client.V1RoleBinding(
-            metadata=metadata, role_ref=role_ref, subjects=[subject]
+            metadata=metadata, role_ref=role_ref, subjects=subject_list
         )  # noqa: E501
 
         try:
@@ -347,10 +359,11 @@ class ApplicationHubContext(ABC):
     def create_role(
         self,
         name: str,
-        verbs: list,
-        resources: list = ["pods", "pods/log"],
-        api_groups: list = ["*"],
+        verbs: list[Verb],
+        resources: list[str] = [""],
+        api_groups: list[str] = ["*"],
     ):
+
         if self.is_role_created(name=name):
             return self.rbac_authorization_v1_api.read_namespaced_role(
                 name=name, namespace=self.namespace
@@ -359,9 +372,7 @@ class ApplicationHubContext(ABC):
         metadata = client.V1ObjectMeta(name=name, namespace=self.namespace)
 
         rule = client.V1PolicyRule(
-            api_groups=api_groups,
-            resources=resources,
-            verbs=verbs,
+            api_groups=api_groups, resources=resources, verbs=verbs
         )
 
         body = client.V1Role(metadata=metadata, rules=[rule])
@@ -542,6 +553,41 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     self.spawner.log.error(f"Unexpected {err}, {type(err)}")
                     self.spawner.log.error(f"Skipping creation of volume {volume.name}")
 
+            # process the role bindings
+            role_bindings = self.config_parser.get_profile_role_bindings(
+                profile_id=profile_id
+            )
+
+            if role_bindings:
+                for role_binding in role_bindings:
+                    self.spawner.log.info(f"Creating role binding {role_binding.name}")
+                    try:
+                        # checking if role binding is already created
+                        if not self.is_role_binding_created(name=role_binding.name):
+
+                            # checking if role is already created
+                            if not self.is_role_created(name=role_binding.role):
+                                self.spawner.log.info(
+                                    f"Creating role {role_binding.role}"
+                                )
+                                self.create_role(
+                                    name=role_binding.role,
+                                    verbs=role_binding.verbs,
+                                    resources=role_binding.resources,
+                                    api_groups=role_binding.api_groups,
+                                )
+
+                            # creating role binding
+                            self.create_role_binding(
+                                name=role_binding.name, role=role_binding.role.name
+                            )
+
+                    except Exception as err:
+                        self.spawner.log.error(f"Unexpected {err}, {type(err)}")
+                        self.spawner.log.error(
+                            f"Skipping creation of role binding {role_binding.name}"
+                        )
+
     def dispose(self):
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
 
@@ -569,3 +615,14 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     )
 
                     self.delete_pvc(name=volume.claim_name)
+
+        # deal with the role bindings
+        role_bindings = self.config_parser.get_profile_role_bindings(
+            profile_id=profile_id
+        )
+
+        if role_bindings:
+            for role_binding in role_bindings:
+                if not role_binding.persist:
+                    self.spawner.log.info(f"Dispose role binding {role_binding.name}")
+                    self.delete_role_binding(name=role_binding)

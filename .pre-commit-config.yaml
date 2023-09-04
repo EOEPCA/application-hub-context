@@ -36,11 +36,12 @@ repos:
           - --line-length=88
           - application_hub_context
           - tests
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        args:
-          - --line-length=88
-          - --src=application_hub_context
-          - --profile black
+  # - repo: https://github.com/PyCQA/isort
+  #   rev: 5.12.0
+  #   hooks:
+  #     - id: isort
+  #       args:
+  #         - --line-length=88
+  #         - --src=application_hub_context
+  #         - --profile black
+  #         - --project application_hub_context

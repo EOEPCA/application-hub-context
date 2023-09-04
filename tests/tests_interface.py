@@ -4,7 +4,12 @@ from addict import Dict
 from kubernetes.client.rest import ApiException
 
 from application_hub_context.app_hub_context import DefaultApplicationHubContext
-from application_hub_context.models import ConfigMapEnvVarReference
+from application_hub_context.models import (
+    ConfigMapEnvVarReference,
+    Role,
+    Subject,
+    SubjectKind,
+)
 
 group = Dict()
 group.name = "group_a"
@@ -89,6 +94,8 @@ class TestConstructor(unittest.TestCase):
         with self.assertRaises(ApiException):
             self.app_hub_context.set_pod_env_vars()
 
+        self.app_hub_context.env_vars.pop("A_VAR_2")
+
     def test_pod_env_vars_from_configmap_wrong_key(self):
         self.app_hub_context.env_vars["A_VAR_3"] = ConfigMapEnvVarReference(
             valueFrom={
@@ -97,3 +104,27 @@ class TestConstructor(unittest.TestCase):
         )
         with self.assertRaises(KeyError):
             self.app_hub_context.set_pod_env_vars()
+
+        self.app_hub_context.env_vars.pop("A_VAR_3")
+
+    def test_role_and_role_binding_creation(self):
+
+        pod_reader_role = Role(
+            name="pod_reader_role",
+            resources=["pods", "pods/log"],
+            verbs=["get", "list", "watch", "create", "update", "patch", "delete"],
+        )
+
+        self.app_hub_context.create_role(
+            name=pod_reader_role.name,
+            resources=pod_reader_role.resources,
+            verbs=pod_reader_role.verbs,
+        )
+
+        default_subject = Subject(name="default", kind=SubjectKind.service_account)
+
+        self.app_hub_context.create_role_binding(
+            name="pod_reader_role_binding",
+            subjects=[default_subject],
+            role=pod_reader_role,
+        )
