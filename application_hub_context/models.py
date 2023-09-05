@@ -1,4 +1,5 @@
-from typing import List, Optional
+from enum import Enum
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -49,14 +50,13 @@ class ConfigMap(BaseModel):
     name: str
     key: str
     mount_path: str
-    default_mode: str
+    default_mode: Optional[str]
     readonly: bool
     content: Optional[str] = None
     persist: Optional[bool] = True
 
 
 class KubespawnerOverride(BaseModel):
-
     cpu_limit: int
     cpu_guarantee: Optional[int] = None
     mem_limit: str
@@ -84,18 +84,61 @@ class ProfileDefinition(BaseModel):
     kubespawner_override: KubespawnerOverride
 
 
-class Profile(BaseModel):
+class ConfigMapKeyRef(BaseModel):
+    name: str
+    key: str
 
+
+class ConfigMapEnvVarReference(BaseModel):
+    from_config_map: ConfigMapKeyRef
+
+
+class SubjectKind(str, Enum):
+    service_account = "ServiceAccount"
+    user = "User"
+
+
+class Verb(str, Enum):
+    get = "get"
+    list = "list"
+    watch = "watch"
+    create = "create"
+    update = "update"
+    patch = "patch"
+    delete = "delete"
+    deletecollection = "deletecollection"
+
+
+class Subject(BaseModel):
+    name: str
+    kind: SubjectKind
+
+
+class Role(BaseModel):
+    name: str
+    resources: List[str]
+    verbs: List[Verb]
+    api_groups: Optional[List[str]] = [""]
+
+
+class RoleBinding(BaseModel):
+    name: str
+    subjects: List[Subject]
+    role: Role
+    persist: bool = True
+
+
+class Profile(BaseModel):
     id: str
     groups: List[str]
     definition: ProfileDefinition
     config_maps: Optional[List[ConfigMap]] = None
     volumes: Optional[List[Volume]] = None
-    pod_env_vars: Optional[dict] = None
+    pod_env_vars: Optional[dict[str, Union[str, ConfigMapEnvVarReference]]] = None
     default_url: Optional[str] = None
     node_selector: dict
+    role_bindings: Optional[List[RoleBinding]] = None
 
 
 class Config(BaseModel):
-
     profiles: List[Profile]
