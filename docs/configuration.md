@@ -36,6 +36,10 @@ default_url: "lab"
 pod_env_vars:
     A: 10
     B: 20
+    GITLAB_TOKEN:
+      from_config_map:
+        name: gitlabenv
+        key: GITLAB_TOKEN
 # a list of volumes (optional)
 volumes: []
 # a list of config maps (optional)
