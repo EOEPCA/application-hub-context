@@ -102,6 +102,26 @@ kubespawner_override:
   extra_resource_guarantees: {"nvidia.com/gpu": "1"}
 ```
 
+## Environment variables
+
+Environment variables can be defined by
+
+* Providing a fixed global value, or
+* Referencing a key in a config map (which must exist in the same Kubernetes namespace,
+  e.g. an individual user's namespace)
+
+The two ways of defining environment variables work as follows (global and specific):
+
+```yaml
+pod_env_vars:
+  global: global_value
+  specific:
+    from_config_map:
+      name: config_map_name
+      key: config_map_key
+```
+
+
 ## Volumes
 
 A volume is defined with:
@@ -121,7 +141,7 @@ persist: true
 
 **Note**: if the _PVC_ does not exist it is created.
 
-If the `persist` boolean flag set to `false`, both the _PVC_ and _Volume_ are deleted.
+If the `persist` boolean flag is set to `false`, both the _PVC_ and _Volume_ are deleted.
 
 ## ConfigMaps
 
@@ -151,7 +171,7 @@ content: -|
 
 ## Roles and role bindings
 
-Roles and role bindings are defined as follows:
+Roles and role bindings are defined as follows (following the model of the Kubernetes [RBAC authorisation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)):
 
 ```yaml
 role_bindings:
@@ -172,4 +192,4 @@ role_bindings:
     persist: false
 ```
 
-If the persist boolean flag set to false, both the role and role binding are deleted.
+If the `persist` boolean flag is set to `false`, both the _role_ and _role binding_ are deleted.
