@@ -148,3 +148,28 @@ content: -|
   aws_access_key_id=5...b
   aws_secret_access_key=c7...3
 ```
+
+## Roles and role bindings
+
+Roles and role bindings are defined as follows:
+
+```yaml
+role_bindings:
+  - name: pod_reader_role_binding
+    subjects:
+      - name: default
+        kind: ServiceAccount
+    role:
+        name: pod_reader_role
+        api_group: rbac.authorization.k8s.io
+        verbs:
+          - get
+          - list
+          - watch
+        resources:
+          - pods
+          - pods/log
+    persist: false
+```
+
+If the persist boolean flag set to false, both the role and role binding are deleted.
