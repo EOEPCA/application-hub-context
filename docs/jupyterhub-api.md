@@ -20,6 +20,23 @@ verify=False)
 r.json()
 ```
 
+### Create group
+
+```python
+import requests
+
+endpoint = "https://app-hub.acme.com/hub/api"
+token = "d...8"
+
+headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {token}'}
+
+group = 'group-a'
+
+r = requests.post(f"{endpoint}/groups/{group}", headers=headers, verify=False)
+r.status_code
+r.json()
+```
+
 ### Add user to group
 
 
