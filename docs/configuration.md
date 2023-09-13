@@ -72,10 +72,12 @@ profiles:
 ```
 
 A user that belongs to `group-A` is:
+
 - able to spawn the application defined in the `profile_1`.
 - not able to spawn the application defined in the `profile_2`.
 
-A user belonging to `group-B` is
+A user belonging to `group-B` is:
+
 - able to spawn the application defined in the `profile_1`.
 - able to spawn the application defined in the `profile_2`.
 
@@ -196,4 +198,4 @@ role_bindings:
     persist: false
 ```
 
-If the `persist` boolean flag is set to `false`, both the _role_ and _role binding_ are deleted.
+If the `persist` boolean flag is set to `false`, both the _role_ and _role binding_ are deleted when the pod is disposed.
