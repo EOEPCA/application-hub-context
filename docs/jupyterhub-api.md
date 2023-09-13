@@ -1,6 +1,8 @@
 # Using JupyterHub API
 
-See https://jupyterhub.readthedocs.io/en/stable/reference/rest-api.html for more information on the JupyterHub API.
+See [JupyterHub documentation](https://jupyterhub.readthedocs.io/en/stable/reference/rest-api.html) for more information on the JupyterHub API.
+
+The code examples below show how the JupyterHub REST API can be used with Python and the `requests` module.
 
 ## Groups
 
