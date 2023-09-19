@@ -8,6 +8,9 @@ The code examples below show how the JupyterHub REST API can be used with Python
 
 In order to use the API, an API token must be obtained. This requires the username and password of an admin or other user with the necessary privileges.
 
+```python
+import requests
+
 endpoint = "https://app-hub.acme.com/hub/api"
 
 headers = {'Content-Type': 'application/json'}
@@ -20,6 +23,7 @@ data = {
 r = requests.get(f"{endpoint}/authorizations/token", headers=headers, json=data, verify=False)
 
 token = r.json()['token']
+```
 
 ## Groups
 
