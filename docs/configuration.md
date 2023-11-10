@@ -199,3 +199,33 @@ role_bindings:
 ```
 
 If the `persist` boolean flag is set to `false`, both the _role_ and _role binding_ are deleted when the pod is disposed.
+
+## Image Pull Secrets
+
+Image Pull Secrets are defined with:
+
+```yaml
+image_pull_secrets:
+  - data: "eyJhdXRocyI6eyJjci50ZXJyYWR1ZS5jkdWWWVXTnpiMVZuTm14VmJUWkllWGhUIn19fQ=="
+    name: "cr-config"
+    persist: false
+```
+
+## Init Containers
+
+This init container use an `.init.sh` mounted from a configMap and a volume to contextualize the environment:
+
+```yaml
+init_containers:
+  - command:
+    - sh
+    - /opt/init/.init.sh
+    image: bitnami/git:latest
+    name: init-file-on-volume
+    volume_mounts:
+    - mount_path: /workspace
+      name: workspace-volume
+    - mount_path: /opt/init/.init.sh
+      name: init
+      sub_path: init
+```
