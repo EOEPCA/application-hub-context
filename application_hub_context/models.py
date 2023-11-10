@@ -1,14 +1,15 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class VolumeMount(BaseModel):
     """volume mount object"""
 
     name: str
-    mount_path: str
+    mount_path: str = Field(serialization_alias="mountPath")
+    sub_path: Union[str, None] = Field(default=None, serialization_alias="subPath")
 
 
 class Volume(BaseModel):
@@ -66,6 +67,23 @@ class KubespawnerOverride(BaseModel):
     extra_resource_guarantees: Optional[dict] = {}
 
 
+class InitContainer(BaseModel):
+    name: str
+    image: str
+    command: List[str]
+    volume_mounts: List[VolumeMount]
+
+    # {
+    #     "name": "init-file-on-volume",
+    #     "image": "bitnami/git:latest",
+    #     "command": ["sh", "-c", "sh -x /opt/init/.init.sh"],
+    #     "volumeMounts": [
+    #         {"name": "workspace-volume", "mountPath": "/workspace"},
+    #         {"name": "init", "subPath": "init", "mountPath": "/opt/init/.init.sh"},
+    #     ],
+    # }
+
+
 class ProfileDefinition(BaseModel):
 
     """
@@ -79,6 +97,7 @@ class ProfileDefinition(BaseModel):
     """
 
     display_name: str
+    description: Optional[str] = None
     slug: str
     default: bool
     kubespawner_override: KubespawnerOverride
@@ -128,6 +147,12 @@ class RoleBinding(BaseModel):
     persist: bool = True
 
 
+class ImagePullSecret(BaseModel):
+    name: str
+    persist: bool = True
+    data: Optional[str] = None
+
+
 class Profile(BaseModel):
     id: str
     groups: List[str]
@@ -138,6 +163,8 @@ class Profile(BaseModel):
     default_url: Optional[str] = None
     node_selector: dict
     role_bindings: Optional[List[RoleBinding]] = None
+    image_pull_secrets: Optional[List[ImagePullSecret]] = None
+    init_containers: Optional[List[InitContainer]] = None
 
 
 class Config(BaseModel):

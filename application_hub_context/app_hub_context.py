@@ -196,7 +196,7 @@ class ApplicationHubContext(ABC):
         pass
 
     @staticmethod
-    def retry(fun, max_tries=10, interval=5, **kwargs):
+    def retry(fun, max_tries=10, interval=1, **kwargs):
         for i in range(max_tries):
             try:
                 time.sleep(interval)
@@ -243,7 +243,7 @@ class ApplicationHubContext(ABC):
                 pretty=True,
             )
 
-            if not self.retry(self.is_config_map_created, name=name):
+            if not self.retry(self.is_config_map_created, name=name, interval=2):
                 raise ApiException(http_resp=response)
             self.spawner.log.info(f"config map {name} created")
             return response
@@ -363,14 +363,25 @@ class ApplicationHubContext(ABC):
 
             if not self.retry(self.is_role_binding_created, name=name):
                 raise ApiException(http_resp=response)
-            print(f"role binding {name} created")
+            self.spawner.log.info(f"role binding {name} created")
             return response
         except ApiException as e:
-            print(
+            self.spawner.log.error(
                 f"role binding {name} not created in the time interval assigned:"
                 f" Exception when calling get status: {e}\n"
             )
             raise e
+
+    def delete_image_pull_secret(self, name):
+        try:
+            response = self.core_v1_api.delete_namespaced_secret(
+                name=name, namespace=self.namespace
+            )
+            return response
+        except ApiException as e:
+            self.spawner.log.error(
+                f"Exception deleting image pull secret {name}: {e}\n"
+            )
 
     def create_role(
         self,
@@ -402,14 +413,91 @@ class ApplicationHubContext(ABC):
 
             if not self.retry(self.is_role_created, name=name):
                 raise ApiException(http_resp=response)
-            print(f"role {name} created")
+            self.spawner.log.info(f"role {name} created")
             return response
 
         except ApiException as e:
-            print(
+            self.spawner.log.error(
                 f"role {name} not created in the time interval assigned: "
                 f"Exception when calling get status: {e}\n"
             )
+            raise e
+
+    def create_image_pull_secret(self, name: str, data):
+
+        if self.is_image_pull_secret_created(name=name):
+
+            return self.core_v1_api.read_namespaced_secret(
+                namespace=self.namespace, name=name
+            )  # noqa: E501
+
+        metadata = {"name": name, "namespace": self.namespace}
+
+        secret_data = {".dockerconfigjson": data}
+
+        secret = client.V1Secret(
+            api_version="v1",
+            data=secret_data,
+            kind="Secret",
+            metadata=metadata,
+            type="kubernetes.io/dockerconfigjson",
+        )
+
+        try:
+            response = self.core_v1_api.create_namespaced_secret(
+                namespace=self.namespace,
+                body=secret,
+                pretty=True,
+            )
+
+            if not self.retry(self.is_image_pull_secret_created, name=name, interval=1):
+                raise ApiException(http_resp=response)
+            self.spawner.log.info(f"image pull secret {name} created")
+            return response
+
+        except ApiException as e:
+            self.spawner.log.error(
+                f"image pull secret {name} not created " "in the time interval assigned"
+            )
+            raise e
+
+    def patch_service_account(self, secret_name: str):
+        # adds a secret to the namespace default service account
+
+        service_account_body = self.core_v1_api.read_namespaced_service_account(
+            name="default", namespace=self.namespace
+        )
+
+        self.spawner.log.info(
+            "service_account_body.image_pull_secrets "
+            f"{service_account_body.image_pull_secrets}"
+        )
+        self.spawner.log.info(
+            f"service_account_body.secrets {service_account_body.secrets}"
+        )
+
+        if service_account_body.secrets is None:
+            service_account_body.secrets = []
+
+        if service_account_body.image_pull_secrets is None:
+            service_account_body.image_pull_secrets = []
+
+        for elem in service_account_body.image_pull_secrets:
+            if elem.name == secret_name:
+                return
+
+        self.spawner.log.info(f"patching service account with secret {secret_name}")
+        service_account_body.secrets.append({"name": secret_name})
+        service_account_body.image_pull_secrets.append({"name": secret_name})
+
+        try:
+            self.core_v1_api.patch_namespaced_service_account(
+                name="default",
+                namespace=self.namespace,
+                body=service_account_body,
+                pretty=True,
+            )
+        except ApiException as e:
             raise e
 
 
@@ -605,6 +693,67 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                         self.spawner.log.error(
                             f"Skipping creation of role binding {role_binding.name}"
                         )
+            # process the role bindings
+            image_pull_secrets = self.config_parser.get_profile_image_pull_secrets(
+                profile_id=profile_id
+            )
+
+            if image_pull_secrets:
+                for image_pull_secret in image_pull_secrets:
+                    self.spawner.log.info(
+                        f"Create image pull secret {image_pull_secret.name}"
+                    )
+                    try:
+                        if not self.is_image_pull_secret_created(
+                            name=image_pull_secret.name
+                        ):
+                            self.spawner.log.info(
+                                f"Creating image pull secret {image_pull_secret.name})"
+                            )
+                            self.create_image_pull_secret(
+                                name=image_pull_secret.name,
+                                data=image_pull_secret.data,
+                            )
+                    except Exception as err:
+                        self.spawner.log.error(f"Unexpected {err}, {type(err)}")
+                        self.spawner.log.error(
+                            "Skipping creation of image pull secret"
+                            f" {image_pull_secret.name}"
+                        )
+
+                    self.patch_service_account(secret_name=image_pull_secret.name)
+
+            # process the init containers
+            init_containers = self.config_parser.get_profile_init_containers(
+                profile_id=profile_id
+            )
+
+            if init_containers:
+                for init_container in init_containers:
+                    self.spawner.log.info(
+                        f"Create init container {init_container.name}"
+                    )
+                    try:
+                        self.spawner.init_containers.extend(
+                            [
+                                {
+                                    "name": init_container.name,
+                                    "image": init_container.image,
+                                    "command": init_container.command,
+                                    "volumeMounts": [
+                                        volume_mount.model_dump(
+                                            by_alias=True, exclude_none=True
+                                        )
+                                        for volume_mount in init_container.volume_mounts
+                                    ],
+                                }
+                            ]
+                        )
+                    except Exception as err:
+                        self.spawner.log.error(f"Unexpected {err}, {type(err)}")
+                        self.spawner.log.error(
+                            f"Skipping creation of init container {init_container.name}"
+                        )
 
     def dispose(self):
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
@@ -644,3 +793,45 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                 if not role_binding.persist:
                     self.spawner.log.info(f"Dispose role binding {role_binding.name}")
                     self.delete_role_binding(role_binding=role_binding)
+
+        # deal with the image pull secrets
+        image_pull_secrets = self.config_parser.get_profile_image_pull_secrets(
+            profile_id=profile_id
+        )
+
+        if image_pull_secrets:
+            for image_pull_secret in image_pull_secrets:
+                if not image_pull_secret.persist:
+                    self.spawner.log.info(
+                        f"Dispose image pull secret {image_pull_secret.name}"
+                    )
+                    self.delete_image_pull_secret(name=image_pull_secret.name)
+
+                    service_account_body = (
+                        self.core_v1_api.read_namespaced_service_account(
+                            name="default", namespace=self.namespace
+                        )
+                    )
+                    for elem in service_account_body.image_pull_secrets:
+                        if elem.name == image_pull_secret.name:
+
+                            service_account_body.image_pull_secrets.remove(
+                                {"name": elem.name}
+                            )
+
+                            self.spawner.log.info(
+                                f"Remove image pull secret {image_pull_secret.name}"
+                                " from default service account"
+                            )
+
+                            try:
+                                self.core_v1_api.patch_namespaced_service_account(
+                                    name="default",
+                                    namespace=self.namespace,
+                                    body=service_account_body,
+                                    pretty=True,
+                                )
+                            except ApiException as e:
+                                raise e
+
+                            break

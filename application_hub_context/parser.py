@@ -29,12 +29,17 @@ class ConfigParser:
             if bool(set(profile.groups) & set(self.user_groups)):
                 profiles.append(profile.definition.dict())
 
+        if not profiles:
+            profiles.append(
+                {
+                    "display_name": "Pending configuration",
+                    "description": "Please contact your "
+                    "administrator to configure your profile(s).",
+                    "kubespawner_override": {},
+                }
+            )
+
         return profiles
-        # return [
-        #     profile.definition
-        #     for profile in self.config.profiles
-        #     if bool(set(profile.groups) & set(self.user_groups))
-        # ]
 
     def get_profile_by_id(self, profile_id):
         """returns a profile using the id or None"""
@@ -111,3 +116,11 @@ class ConfigParser:
             return self.get_profile_by_id(profile_id=profile_id).role_bindings
         except AttributeError:
             pass
+
+    def get_profile_image_pull_secrets(self, profile_id):
+        """returns the image pull secrets"""
+        return self.get_profile_by_id(profile_id=profile_id).image_pull_secrets
+
+    def get_profile_init_containers(self, profile_id):
+        """returns the image pull secrets"""
+        return self.get_profile_by_id(profile_id=profile_id).init_containers

@@ -52,7 +52,15 @@ class TestConfigParser(unittest.TestCase):
             config_path="tests/data/config.yml",
             user_groups=["group-a", "group-b"],
         )
-        self.assertFalse(ws_config_parser.get_profiles())
+        self.assertDictEqual(
+            ws_config_parser.get_profiles()[0],
+            {
+                "display_name": "Pending configuration",
+                "description": "Please contact your "
+                "administrator to configure your profile(s).",
+                "kubespawner_override": {},
+            },
+        )
 
     def test_get_profile_by_id(self):
         profile = self.ws_config_parser.get_profile_by_id(profile_id="profile_1")

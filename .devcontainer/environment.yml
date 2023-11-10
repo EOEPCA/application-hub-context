@@ -18,4 +18,5 @@ dependencies:
     - loguru
     - munch
     - addict
-    - pydantic
+    - pydantic>=2
+    - ipykernel
