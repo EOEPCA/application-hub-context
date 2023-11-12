@@ -229,3 +229,18 @@ init_containers:
       name: init
       sub_path: init
 ```
+
+The configMap `init` is created with:
+
+
+```
+- config_maps:
+  - name: init
+    key: init
+    content: |-
+      echo "# Hello World!" > /workspace/README.md
+    default_mode: null
+    mount_path: /opt/init/.init.sh
+    persist: false
+    readonly: true
+```

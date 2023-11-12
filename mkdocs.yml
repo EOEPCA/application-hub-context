@@ -15,6 +15,7 @@ markdown_extensions:
   - admonition
   - pymdownx.highlight
   - pymdownx.superfences
+  - attr_list
 
 plugins:
   - search

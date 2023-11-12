@@ -18,3 +18,14 @@ roleRef:
   kind: ClusterRole
   name: cluster-admin
 ```
+
+Download the manifest from:
+
+[cluster-role-binding.yaml](./cluster-role-binding.yaml){:download}
+
+
+Apply with:
+
+```
+kubectl apply -f cluster-role-binding.yaml
+```
