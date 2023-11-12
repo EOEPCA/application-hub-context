@@ -23,9 +23,14 @@ Download the manifest from:
 
 [cluster-role-binding.yaml](./cluster-role-binding.yaml){:download}
 
-
 Apply with:
 
 ```
 kubectl apply -f cluster-role-binding.yaml
+```
+
+or do:
+
+```
+curl https://eoepca.github.io/application-hub-context/cluster-role-binding.yaml | kubectl apply -f -
 ```
