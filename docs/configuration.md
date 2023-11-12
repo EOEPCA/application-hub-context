@@ -233,7 +233,7 @@ init_containers:
 The configMap `init` is created with:
 
 
-```
+```yaml
 - config_maps:
   - name: init
     key: init
