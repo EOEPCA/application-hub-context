@@ -1,10 +1,12 @@
 import os
 import time
+import yaml
 from abc import ABC
 from http import HTTPStatus
 from typing import Dict, TextIO
 
 from kubernetes import client, config
+from kubernetes.utils import create_from_dict
 from kubernetes.client import Configuration
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
@@ -33,9 +35,9 @@ class ApplicationHubContext(ABC):
         self.api_client = self._get_api_client(self.kubeconfig_file)
         self.core_v1_api = self._get_core_v1_api()
         self.batch_v1_api = self._get_batch_v1_api()
+        self.apps_v1_api = self._get_apps_v1_api()
         self.rbac_authorization_v1_api = self._get_rbac_authorization_v1_api()
         self.namespace = namespace
-
         self.spawner = spawner
         # get the groups the user belongs to
         self.user_groups = [group.name for group in self.spawner.user.groups]
@@ -122,6 +124,9 @@ class ApplicationHubContext(ABC):
     def _get_rbac_authorization_v1_api(self) -> client.RbacAuthorizationApi:
         return client.RbacAuthorizationV1Api(self.api_client)
 
+    def _get_apps_v1_api(self) -> client.AppsV1Api:
+        return client.AppsV1Api(self.api_client)
+
     def is_object_created(self, read_method, **kwargs):
         read_methods = {}
 
@@ -194,6 +199,35 @@ class ApplicationHubContext(ABC):
 
     def dispose(self):
         pass
+
+    def create_namespace(
+        self, labels: dict = None, annotations: dict = None
+    ) -> client.V1Namespace:
+
+        if self.is_namespace_created():
+            self.spawner.log.info(
+                f"namespace {self.namespace} exists, skipping creation"
+            )
+            return self.core_v1_api.read_namespace(name=self.namespace)
+
+        self.spawner.log.info(f"creating namespace {self.namespace}")
+        try:
+            body = client.V1Namespace(
+                metadata=client.V1ObjectMeta(
+                    name=self.namespace, labels=labels, annotations=annotations
+                )  # noqa: E501
+            )
+            response = self.core_v1_api.create_namespace(
+                body=body, async_req=False
+            )  # noqa: E501
+
+            if not self.retry(self.is_namespace_created):
+                raise ApiException(http_resp=response)
+            self.spawner.log.info(f"namespace {self.namespace} created")
+            return response
+        except ApiException as e:
+            self.spawner.log.error(f"namespace {self.namespace} creation failed, {e}\n")
+            raise e
 
     @staticmethod
     def retry(fun, max_tries=10, interval=1, **kwargs):
@@ -390,7 +424,6 @@ class ApplicationHubContext(ABC):
         resources: list[str] = [""],
         api_groups: list[str] = ["*"],
     ):
-
         if self.is_role_created(name=name):
             return self.rbac_authorization_v1_api.read_namespaced_role(
                 name=name, namespace=self.namespace
@@ -424,9 +457,7 @@ class ApplicationHubContext(ABC):
             raise e
 
     def create_image_pull_secret(self, name: str, data):
-
         if self.is_image_pull_secret_created(name=name):
-
             return self.core_v1_api.read_namespaced_secret(
                 namespace=self.namespace, name=name
             )  # noqa: E501
@@ -499,6 +530,48 @@ class ApplicationHubContext(ABC):
             )
         except ApiException as e:
             raise e
+
+    # new function to apply a set of manifests like kubectl apply -f
+    # def apply_manifests(self, manifest_file):
+    def apply_manifest(self, manifest):
+
+        create_from_dict(
+            k8s_client=self.api_client,
+            data=manifest,
+            verbose=True,
+            namespace=self.namespace,
+        )
+
+    def unapply_manifests(self, manifest_content):
+
+        manifests = yaml.safe_load_all(manifest_content)
+
+        for k8_object in manifests:
+            kind = k8_object.get("kind")
+            self.spawner.log.info(
+                f"Deleting {kind} {k8_object.get('metadata', {}).get('name')}"
+            )
+            metadata = k8_object.get("metadata", {})
+            namespace = metadata.get("namespace", self.namespace)
+            name = metadata.get("name")
+
+            if not kind or not name:
+                continue
+
+            try:
+                if kind == "Deployment":
+                    self.apps_v1_api.delete_namespaced_deployment(name, namespace)
+                elif kind == "Service":
+                    self.core_v1_api.delete_namespaced_service(name, namespace)
+                elif kind == "Job":
+                    self.batch_v1_api.delete_namespaced_job(name, namespace)
+                elif kind == "Pod":
+                    self.core_v1_api.delete_namespaced_pod(name, namespace)
+                # Add other kinds as needed
+                else:
+                    self.spawner.log.error(f"Unsupported kind: {kind}")
+            except client.exceptions.ApiException as e:
+                self.spawner.log.error(f"An error occurred: {e}")
 
 
 class DefaultApplicationHubContext(ApplicationHubContext):
@@ -576,6 +649,11 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         # process the config maps
         config_maps = self.config_parser.get_profile_config_maps(profile_id=profile_id)
 
+        # check the namespace
+        if not self.is_namespace_created():
+            self.spawner.log.info(f"Creating namespace {self.namespace}")
+            self.create_namespace()
+
         if config_maps:
             for config_map in config_maps:
                 try:
@@ -588,25 +666,34 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             annotations=None,
                             labels=None,
                         )
-                    self.spawner.log.info(f"Mounting configmap {config_map.name}")
-                    self.spawner.volume_mounts.extend(
-                        [
-                            {
-                                "name": config_map.name,
-                                "mountPath": config_map.mount_path,
-                                "subPath": config_map.key,
-                            },
-                        ]
-                    )
+                    if config_map.mount_path is not None:
 
-                    self.spawner.volumes.extend(
-                        [
-                            {
-                                "name": config_map.name,
-                                "configMap": {"name": config_map.key},
-                            }
-                        ]
-                    )
+                        self.spawner.log.info(f"Mounting configmap {config_map.name}")
+                        self.spawner.volume_mounts.extend(
+                            [
+                                {
+                                    "name": config_map.name,
+                                    "mountPath": config_map.mount_path,
+                                    "subPath": config_map.key,
+                                },
+                            ]
+                        )
+                        self.spawner.volumes.extend(
+                            [
+                                {
+                                    "name": config_map.name,
+                                    "configMap": {
+                                        "name": config_map.key,
+                                        "defaultMode": int(config_map.default_mode, 8)
+                                        if config_map.default_mode
+                                        else 0o644,  # noqa: E501
+                                    },
+                                }
+                            ]
+                        )
+                        self.spawner.log.info(
+                            f"Mounted configmap {config_map.name} (key {config_map.key}) mode {int(config_map.default_mode, 8)}"  # noqa: E501
+                        )
                 except Exception as err:
                     self.spawner.log.error(f"Unexpected {err=}, {type(err)=}")
                     self.spawner.log.error(
@@ -668,7 +755,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     try:
                         # checking if role binding is already created
                         if not self.is_role_binding_created(name=role_binding.name):
-
                             # checking if role is already created
                             if not self.is_role_created(name=role_binding.role.name):
                                 self.spawner.log.info(
@@ -755,6 +841,26 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             f"Skipping creation of init container {init_container.name}"
                         )
 
+            # process the manifests
+            manifests = self.config_parser.get_profile_manifests(profile_id=profile_id)
+
+            if manifests:
+                for manifest in manifests:
+                    self.spawner.log.info(f"Apply manifest {manifest.name}")
+
+                    try:
+                        ms = yaml.safe_load_all(manifest.content)
+                        for k8_object in ms:
+                            self.spawner.log.info(
+                                f"Apply manifest kind {k8_object['kind']}"
+                            )
+                            self.apply_manifest(k8_object)
+                    except Exception as err:
+                        self.spawner.log.error(f"Unexpected {err}, {type(err)}")
+                        self.spawner.log.error(
+                            f"Skipping creation of manifest {manifest.name}"
+                        )
+
     def dispose(self):
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
 
@@ -794,6 +900,14 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     self.spawner.log.info(f"Dispose role binding {role_binding.name}")
                     self.delete_role_binding(role_binding=role_binding)
 
+        # process the manifests
+        manifests = self.config_parser.get_profile_manifests(profile_id=profile_id)
+        self.spawner.log.info(f"Delete manifest {manifests}")
+        if manifests:
+            for manifest in manifests:
+                self.spawner.log.info(f"Un-apply manifest {manifest.name}")
+                self.unapply_manifests(manifest_content=manifest.content)
+
         # deal with the image pull secrets
         image_pull_secrets = self.config_parser.get_profile_image_pull_secrets(
             profile_id=profile_id
@@ -814,7 +928,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     )
                     for elem in service_account_body.image_pull_secrets:
                         if elem.name == image_pull_secret.name:
-
                             service_account_body.image_pull_secrets.remove(
                                 {"name": elem.name}
                             )

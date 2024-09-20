@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: hub-content-init
+  namespace: jupyter
+spec:
+  template:
+    spec:
+      containers:
+      - name: hub-content-init
+        image: ubuntu:22.04
+        command: ["/bin/bash", "-c"]
+        args: ["/init/init.sh"]
+        volumeMounts:
+        - name: init-script-volume
+          mountPath: /init/init.sh
+          readOnly: true
+          subPath: init.sh
+      restartPolicy: Never
+      volumes:
+      - name: init-script-volume
+        configMap:
+          defaultMode: 0700
+          name: init-script-configmap
+  backoffLimit: 4

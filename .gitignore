@@ -1,6 +1,5 @@
 *.pyc
 __pycache__
-jupyterhub
 values.yaml
 *.egg-info
 build

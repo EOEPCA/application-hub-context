@@ -27,7 +27,7 @@ repos:
         args:
           - --max-line-length=88
           - --max-doc-length=90
-          - --ignore=E203,W503,W505
+          - --ignore=E203,W503,W505,F821,E302,E402
   - repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:

@@ -124,3 +124,10 @@ class ConfigParser:
     def get_profile_init_containers(self, profile_id):
         """returns the image pull secrets"""
         return self.get_profile_by_id(profile_id=profile_id).init_containers
+
+    def get_profile_manifests(self, profile_id):
+        """returns the profile manifests"""
+        try:
+            return self.get_profile_by_id(profile_id=profile_id).manifests
+        except AttributeError:
+            pass
