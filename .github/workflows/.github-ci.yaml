@@ -1,0 +1,94 @@
+name: Build, Test, and Deploy Docker Image
+
+on:
+  push:
+    branches: [eoepca-beta01]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    # Step 1: Checkout repository
+    - uses: actions/checkout@v4
+
+    # Step 2: Install Trivy
+    - name: Install Trivy
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update -y
+        sudo apt-get install -y trivy
+
+    # Step 3: Build Docker Image
+    - name: Build Docker Image
+      run: |
+        APP_NAME="application-hub-context"
+        APP_VERSION="1.6.2"
+        tag="${APP_NAME}:${APP_VERSION}"
+        echo "${{ secrets.CR_PASSWORD }}" | docker login -u "${{ secrets.CR_USERNAME }}" --password-stdin "${{ secrets.CR_REGISTRY }}"
+        docker build  --build-arg CR_REGISTRY="${{ secrets.CR_REGISTRY }}" --build-arg CR_REPO="${{ secrets.CR_REPO }}" -t "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}" --file Dockerfile .
+        
+
+    # Step 4: Save Docker Image as tar.gz
+    - name: Save Docker Image as tar.gz
+      run: |
+        APP_NAME="application-hub-context"
+        APP_VERSION="1.6.2"
+        tag="${APP_NAME}:${APP_VERSION}"
+        docker save "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}" -o "${APP_NAME}_${APP_VERSION}.tar"
+        tar -czf "${APP_NAME}_${APP_VERSION}.tar.gz" "${APP_NAME}_${APP_VERSION}.tar"
+
+    # Step 5: Upload Docker Image tar.gz as an artifact
+    - name: Upload Docker Image Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: docker-image-tar
+        path: application-hub-context_1.6.2.tar.gz
+
+    # Step 6: Scan Docker Image with Trivy
+    - name: Scan Docker Image with Trivy
+      run: |
+        APP_NAME="application-hub-context"
+        APP_VERSION="1.6.2"
+        tag="${APP_NAME}:${APP_VERSION}"
+        echo "${{ secrets.CR_PASSWORD }}" | docker login -u "${{ secrets.CR_USERNAME }}" --password-stdin "${{ secrets.CR_REGISTRY }}"
+        trivy image --no-progress --exit-code 1 --severity HIGH,CRITICAL,UNKNOWN --format table "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    # Step 1: Checkout repository
+    - uses: actions/checkout@v4
+
+    # Step 2: Download Docker Image tar.gz Artifact
+    - name: Download Docker Image Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: docker-image-tar
+
+    # Step 3: Extract the Docker Image tar.gz
+    - name: Extract Docker Image tar.gz
+      run: |
+        tar -xzf application-hub-context_1.6.2.tar.gz
+
+    # Step 4: Load Docker Image
+    - name: Load Docker Image
+      run: |
+        docker load -i application-hub-context_1.6.2.tar
+
+    # Step 5: Log in to Docker Registry (use GitHub secrets for security)
+    - name: Login to Docker Registry
+      run: |
+        echo "${{ secrets.CR_PASSWORD }}" | docker login -u "${{ secrets.CR_USERNAME }}" --password-stdin "${{ secrets.CR_REGISTRY }}"
+
+    # Step 6: Push Docker Image to Registry
+    - name: Push Docker Image to Registry
+      run: |
+        APP_NAME="application-hub-context"
+        APP_VERSION="1.6.2"
+        tag="${APP_NAME}:${APP_VERSION}"
+        docker push "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}"
+        
