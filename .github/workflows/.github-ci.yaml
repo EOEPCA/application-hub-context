@@ -31,7 +31,7 @@ jobs:
         docker build -t "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}" --file Dockerfile .
         
 
-    # Step 4: Save Docker Image as tar.gz
+    # Step 4: Save Docker image as tar.gz
     - name: Save Docker Image as tar.gz
       run: |
         APP_NAME="application-hub-context"
