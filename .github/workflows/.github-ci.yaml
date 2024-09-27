@@ -28,7 +28,7 @@ jobs:
         APP_VERSION="1.6.2"
         tag="${APP_NAME}:${APP_VERSION}"
         echo "${{ secrets.CR_PASSWORD }}" | docker login -u "${{ secrets.CR_USERNAME }}" --password-stdin "${{ secrets.CR_REGISTRY }}"
-        docker build  --build-arg CR_REGISTRY="${{ secrets.CR_REGISTRY }}" --build-arg CR_REPO="${{ secrets.CR_REPO }}" -t "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}" --file Dockerfile .
+        docker build -t "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}" --file Dockerfile .
         
 
     # Step 4: Save Docker Image as tar.gz
