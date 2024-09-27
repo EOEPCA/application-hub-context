@@ -90,5 +90,5 @@ jobs:
         APP_NAME="application-hub-context"
         APP_VERSION="1.6.2"
         tag="${APP_NAME}:${APP_VERSION}"
-        docker push "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}"
+        docker push "${{ secrets.CR_REGISTRY }}"/"${{ secrets.CR_REPO }}"/${tag}
         
