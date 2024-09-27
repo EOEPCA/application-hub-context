@@ -22,7 +22,7 @@ jobs:
         sudo apt-get install -y trivy
 
     # Step 3: Build Docker image
-    - name: Build Docker Image
+    - name: Build Docker image
       run: |
         APP_NAME="application-hub-context"
         APP_VERSION="1.6.2"
