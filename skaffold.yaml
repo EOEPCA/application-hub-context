@@ -14,15 +14,21 @@ profiles:
             namespace: jupyter
             createNamespace: true
             valuesFiles:
-              - jupyterhub/values-minikube.yaml
+              - demo-values.yaml
             setValueTemplates:
               hub.image.name: "{{.IMAGE_REPO_hubimage}}/{{.IMAGE_TAG_hubimage}}@{{.IMAGE_DIGEST_hubimage}}"
+            setFiles: {
+              appHubConfig: ./files/hub/config.yml,
+              pageTheme: ./files/theme/page.html,
+              spawnPendingTheme: ./files/theme/spawn_pending.html,
+              spawnTheme: ./files/theme/spawn.html
+            }
+
     manifests:
       rawYaml:
       - sk-k8s/cluster-role-binding.yaml
       - sk-k8s/script.yaml
       - sk-k8s/job.yaml
-
 
 portForward:
 - resourceType: service

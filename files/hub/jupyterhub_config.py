@@ -16,17 +16,10 @@ from z2jh import (
     get_name_env,
 )
 
-config_path = "/usr/local/etc/jupyterhub/config.yml"
+config_path = "/usr/local/etc/applicationhub/config.yml"
 
-def get_namespace_prefix():
-    env = os.environ["JUPYTERHUB_ENV"].lower()  # Retrieve the JUPYTERHUB_ENV environment variable
-    return f"jupyter-{env}"  # Dynamically generate the namespace prefix
+namespace_prefix = "jupyter"
 
-def get_jupyterhub_hub_host():
-    env = os.environ["JUPYTERHUB_HUB_HOST"].lower() 
-    return f"hub.{env}" 
-
-namespace_prefix = get_namespace_prefix()  # Create dynamic namespace prefix
 
 def custom_options_form(spawner):
 
@@ -51,7 +44,7 @@ def pre_spawn_hook(spawner):
 
     env = os.environ["JUPYTERHUB_ENV"].lower()
 
-    spawner.environment["CALRISSIAN_POD_NAME"] = f"jupyter-{env}-{spawner.user.name}"
+    spawner.environment["CALRISSIAN_POD_NAME"] = f"jupyter-{spawner.user.name}-{env}"
 
     spawner.log.info(f"Using profile slug {profile_slug}")
 
@@ -74,7 +67,7 @@ def pre_spawn_hook(spawner):
 
 def post_stop_hook(spawner):
 
-    namespace = f"{namespace_prefix}-{spawner.user.name}"
+    namespace = f"jupyter-{spawner.user.name}"
 
     workspace = DefaultApplicationHubContext(
         namespace=namespace, spawner=spawner, config_path=config_path
@@ -103,8 +96,7 @@ c.JupyterHub.tornado_settings = {
 }
 
 jupyterhub_env = os.environ["JUPYTERHUB_ENV"].upper()
-jupyterhub_hub_host = get_jupyterhub_hub_host()
-
+jupyterhub_hub_host = "hub.jupyter"
 jupyterhub_single_user_image = os.environ["JUPYTERHUB_SINGLE_USER_IMAGE_NOTEBOOKS"]
 
 # Authentication
@@ -159,12 +151,11 @@ c.KubeSpawner.start_timeout = 60 * 15
 c.KubeSpawner.image = jupyterhub_single_user_image
 c.KubernetesSpawner.verify_ssl = True
 c.KubeSpawner.pod_name_template = (
-    "jupyter-" + os.environ["JUPYTERHUB_ENV"].lower() + "-{username}" 
+    "jupyter-{username}-{servername}-" + os.environ["JUPYTERHUB_ENV"].lower()
 )
 
 # Namespace
-# Kubernetes namespace to spawn user pods in.
-c.KubeSpawner.user_namespace_template = get_namespace_prefix() + "-{username}"
+c.KubeSpawner.namespace = "jupyter"
 
 # User namespace
 c.KubeSpawner.enable_user_namespaces = True

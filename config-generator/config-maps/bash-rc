@@ -2,6 +2,9 @@ alias ll="ls -l"
 alias calrissian="/opt/conda/bin/calrissian --pod-nodeselectors /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram 16G --max-cores "8" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/"
 alias cwltool="/opt/conda/bin/cwltool --podman"
 . /home/jovyan/.bashrc
+
+alias aws="aws --endpoint-url=http://localstack:4566"
+
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"

@@ -1,3 +1,4 @@
+
 # fullnameOverride and nameOverride distinguishes blank strings, null values,
 # and non-blank strings. For more details, see the configuration reference.
 fullnameOverride: ""
@@ -79,7 +80,20 @@ hub:
   }
   extraContainers: []
   extraVolumes: []
+      # - name: application-hub-config
+      #   configMap:
+      #     name: application-hub-jupyter-config
+      #     defaultMode: 0744
+      # - name: application-hub-config-theme
+      #   configMap:
+      #     name: application-hub-jupyter-config-theme
+      #     defaultMode: 0744
   extraVolumeMounts: []
+      # - name: application-hub-config
+      #   mountPath: /usr/local/etc/applicationhub
+      # - name: application-hub-config-theme
+      #   mountPath: /opt/jupyterhub/template/
+  
   image:
     name: hubimage
     tag: "dev"

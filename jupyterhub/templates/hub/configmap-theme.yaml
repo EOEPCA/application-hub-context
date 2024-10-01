@@ -13,7 +13,10 @@ data:
     z2jh.py: |
       multi line string content...
   */}}
-  {{- (.Files.Glob "files/theme/*").AsConfig | nindent 2 }}
+    # templates for the hub
+  page.html: {{ required "A valid .Values.pageTheme entry required!" (tpl (.Values.pageTheme | default (.Files.Get "files/theme/page.html")) . | quote ) }}
+  spawn_pending.html: {{ required "A valid .Values.spawnPendingTheme entry required!" (tpl (.Values.spawnPendingTheme | default (.Files.Get "files/theme/spawn_pending.html")) . | quote ) }}
+  spawn.html: {{ required "A valid .Values.spawnTheme entry required!" (tpl (.Values.spawnTheme | default (.Files.Get "files/theme/spawn.html")) . | quote) }}
 
   {{- /*
     Store away a checksum of the hook-image-puller daemonset so future upgrades

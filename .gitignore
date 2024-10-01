@@ -5,3 +5,4 @@ values.yaml
 build
 _README.md
 dist
+.env-config-generator

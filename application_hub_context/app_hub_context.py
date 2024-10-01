@@ -544,9 +544,7 @@ class ApplicationHubContext(ABC):
 
     def unapply_manifests(self, manifest_content):
 
-        manifests = yaml.safe_load_all(manifest_content)
-
-        for k8_object in manifests:
+        for k8_object in manifest_content:
             kind = k8_object.get("kind")
             self.spawner.log.info(
                 f"Deleting {kind} {k8_object.get('metadata', {}).get('name')}"
@@ -567,6 +565,14 @@ class ApplicationHubContext(ABC):
                     self.batch_v1_api.delete_namespaced_job(name, namespace)
                 elif kind == "Pod":
                     self.core_v1_api.delete_namespaced_pod(name, namespace)
+                elif kind == "Role":
+                    self.rbac_authorization_v1_api.delete_namespaced_role(name, namespace)
+                elif kind == "RoleBinding":
+                    self.rbac_authorization_v1_api.delete_namespaced_role_binding(name, namespace)
+                elif kind == "ServiceAccount":
+                    self.core_v1_api.delete_namespaced_service_account(name, namespace)
+                    
+
                 # Add other kinds as needed
                 else:
                     self.spawner.log.error(f"Unsupported kind: {kind}")
@@ -848,18 +854,25 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                 for manifest in manifests:
                     self.spawner.log.info(f"Apply manifest {manifest.name}")
 
-                    try:
-                        ms = yaml.safe_load_all(manifest.content)
-                        for k8_object in ms:
-                            self.spawner.log.info(
-                                f"Apply manifest kind {k8_object['kind']}"
+                    
+                    for k8_object in manifest.content:
+                        try:
+                            # Log the object and its type
+                            self.spawner.log.info(f"K8 Object: {k8_object}")
+                            self.spawner.log.info(f"Object Type: {type(k8_object)}")
+
+                            # Check and log the 'kind' of the Kubernetes object
+                            if 'kind' in k8_object:
+                                self.spawner.log.info(f"Applying manifest of kind: {k8_object['kind']}")
+                                self.apply_manifest(k8_object)  # Apply the manifest
+                            else:
+                                self.spawner.log.warning(f"Manifest does not contain a 'kind': {k8_object}")
+
+                        except Exception as err:
+                            self.spawner.log.error(f"Unexpected {err}, {type(err)}")
+                            self.spawner.log.error(
+                                f"Skipping creation of manifest {manifest.name}"
                             )
-                            self.apply_manifest(k8_object)
-                    except Exception as err:
-                        self.spawner.log.error(f"Unexpected {err}, {type(err)}")
-                        self.spawner.log.error(
-                            f"Skipping creation of manifest {manifest.name}"
-                        )
 
     def dispose(self):
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id

@@ -74,7 +74,7 @@ class Volume(BaseModel):
 class Manifest(BaseModel):
     name: str
     key: str
-    content: Optional[str] = None
+    content: Optional[List[Dict]] = None
     persist: Optional[bool] = True
 
 

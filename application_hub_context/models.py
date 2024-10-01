@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -40,7 +40,7 @@ class Volume(BaseModel):
 class Manifest(BaseModel):
     name: str
     key: str
-    content: Optional[str] = None
+    content: Optional[List[Dict]] = None
     persist: Optional[bool] = True
 
 

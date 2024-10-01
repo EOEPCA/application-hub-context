@@ -1,0 +1,303 @@
+profiles:
+- config_maps:
+  - content: "alias ll=\"ls -l\"\nalias calrissian=\"/opt/conda/bin/calrissian --pod-nodeselectors\
+      \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
+      \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
+      \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
+      # >>> conda initialize >>>\n# !! Contents within this block are managed by 'conda\
+      \ init' !!\n__conda_setup=\"$('/opt/conda/bin/conda' 'shell.bash' 'hook' 2>\
+      \ /dev/null)\"\nif [ $? -eq 0 ]; then\n    eval \"$__conda_setup\"\nelse\n \
+      \   if [ -f \"/opt/conda/etc/profile.d/conda.sh\" ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\
+      \n    else\n        export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset\
+      \ __conda_setup\n\nif [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n \
+      \   . \"/opt/conda/etc/profile.d/mamba.sh\"\nfi\n# <<< conda initialize <<<\n"
+    default_mode: null
+    key: bash-rc
+    mount_path: /workspace/.bashrc
+    name: bash-rc
+    persist: true
+    readonly: true
+  default_url: null
+  definition:
+    default: false
+    description: null
+    display_name: Code Server Small
+    kubespawner_override:
+      cpu_guarantee: null
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: eoepca/pde-code-server:develop
+      mem_guarantee: null
+      mem_limit: 8G
+    slug: ellip_studio_coder_slug_s
+  groups:
+  - group-a
+  - group-b
+  id: profile_studio_coder1
+  image_pull_secrets: []
+  init_containers: []
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    CONDA_ENVS_PATH: ' /workspace/.envs'
+    HOME: /workspace
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteMany
+    claim_name: calrissian-claim
+    name: calrissian-volume
+    persist: false
+    size: 50Gi
+    storage_class: standard
+    volume_mount:
+      mount_path: /calrissian
+      name: calrissian-volume
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: true
+    size: 50Gi
+    storage_class: standard
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps:
+  - content: "alias ll=\"ls -l\"\nalias calrissian=\"/opt/conda/bin/calrissian --pod-nodeselectors\
+      \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
+      \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
+      \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
+      # >>> conda initialize >>>\n# !! Contents within this block are managed by 'conda\
+      \ init' !!\n__conda_setup=\"$('/opt/conda/bin/conda' 'shell.bash' 'hook' 2>\
+      \ /dev/null)\"\nif [ $? -eq 0 ]; then\n    eval \"$__conda_setup\"\nelse\n \
+      \   if [ -f \"/opt/conda/etc/profile.d/conda.sh\" ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\
+      \n    else\n        export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset\
+      \ __conda_setup\n\nif [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n \
+      \   . \"/opt/conda/etc/profile.d/mamba.sh\"\nfi\n# <<< conda initialize <<<\n"
+    default_mode: null
+    key: bash-rc
+    mount_path: /workspace/.bashrc
+    name: bash-rc
+    persist: true
+    readonly: true
+  default_url: null
+  definition:
+    default: false
+    description: null
+    display_name: Code Server Medium
+    kubespawner_override:
+      cpu_guarantee: null
+      cpu_limit: 4
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: eoepca/pde-code-server:develop
+      mem_guarantee: null
+      mem_limit: 12G
+    slug: ellip_studio_coder_slug_m
+  groups:
+  - group-a
+  - group-b
+  id: profile_studio_coder2
+  image_pull_secrets: []
+  init_containers: []
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    CONDA_ENVS_PATH: ' /workspace/.envs'
+    HOME: /workspace
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteMany
+    claim_name: calrissian-claim
+    name: calrissian-volume
+    persist: false
+    size: 50Gi
+    storage_class: standard
+    volume_mount:
+      mount_path: /calrissian
+      name: calrissian-volume
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: true
+    size: 50Gi
+    storage_class: standard
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps:
+  - content: 'set -x
+
+
+      cd /workspace
+
+
+      git clone ''https://github.com/eoap/mastering-app-package.git''
+
+
+      code-server --install-extension ms-python.python
+
+      code-server --install-extension redhat.vscode-yaml
+
+      code-server --install-extension sbg-rabix.benten-cwl
+
+      code-server --install-extension ms-toolsai.jupyter
+
+
+      ln -s /workspace/.local/share/code-server/extensions /workspace/extensions
+
+
+      exit 0
+
+      '
+    default_mode: '0660'
+    key: init
+    mount_path: /opt/init/.init.sh
+    name: init
+    persist: false
+    readonly: true
+  default_url: null
+  definition:
+    default: false
+    description: This profile is used to demonstrate the use of an init script
+    display_name: Coder demo init script
+    kubespawner_override:
+      cpu_guarantee: 1
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: eoepca/pde-code-server:develop
+      mem_guarantee: 4G
+      mem_limit: 6G
+    slug: eoepca_demo_init_script
+  groups:
+  - group-a
+  - group-b
+  id: profile_demo_init_script
+  image_pull_secrets: []
+  init_containers:
+  - command:
+    - sh
+    - -c
+    - sh /opt/init/.init.sh
+    image: eoepca/pde-code-server:develop
+    name: init-file-on-volume
+    volume_mounts:
+    - mount_path: /workspace
+      name: workspace-volume
+    - mount_path: /opt/init/.init.sh
+      name: init
+      sub_path: init
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    CODE_SERVER_WS: /workspace/mastering-app-package
+    CONDARC: /workspace/.condarc
+    CONDA_ENVS_PATH: /workspace/.envs
+    HOME: /workspace
+    XDG_RUNTIME_DIR: /workspace/.local
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteMany
+    claim_name: calrissian-claim
+    name: calrissian-volume
+    persist: false
+    size: 50Gi
+    storage_class: standard
+    volume_mount:
+      mount_path: /calrissian
+      name: calrissian-volume
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: true
+    size: 50Gi
+    storage_class: standard
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps: []
+  default_url: null
+  definition:
+    default: false
+    description: Jupyter Lab with Python 3.11
+    display_name: Jupyter Lab
+    kubespawner_override:
+      cpu_guarantee: 1
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: jupyter/scipy-notebook
+      mem_guarantee: 4G
+      mem_limit: 6G
+    slug: eoepca_jupyter_lab
+  groups:
+  - group-c
+  id: profile_jupyter_lab
+  image_pull_secrets: []
+  init_containers: []
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    HOME: /workspace
+    XDG_CONFIG_HOME: /workspace/.config
+    XDG_RUNTIME_DIR: /workspace/.local
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: true
+    size: 50Gi
+    storage_class: standard
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps: []
+  default_url: null
+  definition:
+    default: false
+    description: Jupyter Lab with Python 3.11 - demoes the use of an image pull secret
+    display_name: Jupyter Lab - profile 2
+    kubespawner_override:
+      cpu_guarantee: 1
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: jupyter/scipy-notebook
+      mem_guarantee: 4G
+      mem_limit: 6G
+    slug: eoepca_jupyter_lab_2
+  groups:
+  - group-c
+  id: profile_jupyter_lab_2
+  image_pull_secrets:
+  - data: ewogICAgImF1dGhzIjogewogICAgICAgICJjci50ZXJyYWR1ZS5jb20iOiB7CiAgICAgICAgICAgICJ1c2VybmFtZSI6ICJyb2JvdCRlb2VwY2EtcGx1cy1ybyIsCiAgICAgICAgICAgICJwYXNzd29yZCI6ICJQMlE4TnkyZ0lHODhkZkxveXlLN05QVUZVbHJOekFZSiIsCiAgICAgICAgICAgICJlbWFpbCI6ICJlb2VwY2EtcGx1c0B0ZXJyYWR1ZS5jb20iLAogICAgICAgICAgICAiYXV0aCI6ICJjbTlpYjNRa1pXOWxjR05oTFhCc2RYTXRjbTg2VURKUk9FNTVNbWRKUnpnNFpHWk1iM2w1U3pkT1VGVkdWV3h5VG5wQldVbz0iCiAgICAgICAgfQogICAgfQp9
+    name: cr-config
+    persist: false
+  init_containers: []
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    HOME: /workspace
+    XDG_CONFIG_HOME: /workspace/.config
+    XDG_RUNTIME_DIR: /workspace/.local
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: true
+    size: 50Gi
+    storage_class: standard
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
