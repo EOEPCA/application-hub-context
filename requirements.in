@@ -8,17 +8,17 @@
 
 # https://github.com/jazzband/pip-tools
 
-pyjwt
-jupyterhub
-pytest
-pytest-asyncio
-pytest-cov
-requests-mock
-jupyterhub-kubespawner
-httplib2
-oauthenticator
-jupyterhub-idle-culler
-kubernetes
-loguru
-addict
-pydantic>=2
+pyjwt==2.9.0
+jupyterhub==5.1.0
+pytest==8.3.3
+pytest-asyncio==0.24.0
+pytest-cov==5.0.0
+requests-mock==1.12.1
+jupyterhub-kubespawner==6.2.0
+httplib2==0.22.0
+oauthenticator==17.0.0
+jupyterhub-idle-culler==1.4.0
+kubernetes==31.0.0
+loguru==0.7.2
+addict==2.4.0
+pydantic==2.9.2
