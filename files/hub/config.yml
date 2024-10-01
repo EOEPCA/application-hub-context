@@ -279,7 +279,7 @@ profiles:
   - group-c
   id: profile_jupyter_lab_2
   image_pull_secrets:
-  - data: ewogICAgImF1dGhzIjogewogICAgICAgICJjci50ZXJyYWR1ZS5jb20iOiB7CiAgICAgICAgICAgICJ1c2VybmFtZSI6ICJyb2JvdCRlb2VwY2EtcGx1cy1ybyIsCiAgICAgICAgICAgICJwYXNzd29yZCI6ICJQMlE4TnkyZ0lHODhkZkxveXlLN05QVUZVbHJOekFZSiIsCiAgICAgICAgICAgICJlbWFpbCI6ICJlb2VwY2EtcGx1c0B0ZXJyYWR1ZS5jb20iLAogICAgICAgICAgICAiYXV0aCI6ICJjbTlpYjNRa1pXOWxjR05oTFhCc2RYTXRjbTg2VURKUk9FNTVNbWRKUnpnNFpHWk1iM2w1U3pkT1VGVkdWV3h5VG5wQldVbz0iCiAgICAgICAgfQogICAgfQp9
+  - data: null
     name: cr-config
     persist: false
   init_containers: []
