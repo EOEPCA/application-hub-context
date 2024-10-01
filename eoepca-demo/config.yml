@@ -16,7 +16,7 @@ profiles:
     key: bash-rc
     mount_path: /workspace/.bashrc
     name: bash-rc
-    persist: true
+    persist: false
     readonly: true
   default_url: null
   definition:
@@ -82,7 +82,7 @@ profiles:
     key: bash-rc
     mount_path: /workspace/.bashrc
     name: bash-rc
-    persist: true
+    persist: false
     readonly: true
   default_url: null
   definition:
@@ -274,7 +274,7 @@ profiles:
       cpu_limit: 2
       extra_resource_guarantees: {}
       extra_resource_limits: {}
-      image: cr.terradue.com/eoepca-plus/scipy-notebook@sha256:f339a9fa98d3d0c1fa8d7cc850e7f5a46845781f49bee86aacba059669d02d54
+      image: eoepca/iat-jupyterlab:develop
       mem_guarantee: 4G
       mem_limit: 6G
     slug: eoepca_jupyter_lab_2
@@ -283,6 +283,7 @@ profiles:
   id: profile_jupyter_lab_2
   image_pull_secrets:
   - data: null
+  - data: ''
     name: cr-config
     persist: false
   init_containers: []
@@ -342,7 +343,7 @@ profiles:
     key: bash-rc
     mount_path: /workspace/.bashrc
     name: bash-rc
-    persist: true
+    persist: false
     readonly: true
   - content: 'source /workspace/.bashrc
 
@@ -367,7 +368,7 @@ profiles:
       image: docker.io/eoepca/pde-code-server@sha256:f57a3d5eabcae667e0db6e84a57b0c07c692c88f0fb5c8f6900ab8d5e38fcd40
       mem_guarantee: 4G
       mem_limit: 6G
-    slug: ellip_studio_coder_slug_stac
+    slug: eoepca_coder_slug_stac
   groups:
   - group-a
   - group-b
@@ -837,6 +838,97 @@ profiles:
     XDG_DATA_HOME: /workspace/.local/share/
     XDG_RUNTIME_DIR: /workspace/.local
   role_bindings: []
+  volumes:
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps:
+  - content: "mkdir -p /workspace/.config/autostart\n\n\ncat <<EOF > /workspace/.config/autostart/qgis.desktop\
+      \ \n[Desktop Entry]\nEncoding=UTF-8\nVersion=0.9.4\nType=Application\nName=qgis\n\
+      Comment=qgis\nExec=qgis\nOnlyShowIn=XFCE;\nRunHook=0\nStartupNotify=false\n\
+      Terminal=false\nHidden=false\nEOF"
+    default_mode: null
+    key: init
+    mount_path: /opt/init/.init.sh
+    name: init
+    persist: false
+    readonly: true
+  - content: "alias ll=\"ls -l\"\nalias calrissian=\"/opt/conda/bin/calrissian --pod-nodeselectors\
+      \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
+      \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
+      \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
+      \nalias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
+      \ >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"\
+      $('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0\
+      \ ]; then\n    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\"\
+      \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
+      \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
+      if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
+      \nfi\n# <<< conda initialize <<<\n"
+    default_mode: null
+    key: bash-rc
+    mount_path: /workspace/.bashrc
+    name: bash-rc
+    persist: false
+    readonly: true
+  - content: 'source /workspace/.bashrc
+
+      '
+    default_mode: null
+    key: bash-login
+    mount_path: /workspace/.bash_login
+    name: bash-login
+    persist: false
+    readonly: true
+  default_url: desktop
+  definition:
+    default: false
+    description: Spatial visualization and decision-making tools for everyone
+    display_name: QGIS on a Remote Desktop
+    kubespawner_override:
+      cpu_guarantee: null
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: eoepca/iga-remote-desktop-qgis:1.1.2
+      mem_guarantee: null
+      mem_limit: 2G
+    slug: eoepca_desktop_qgis
+  groups:
+  - group-a
+  - group-b
+  id: profile_studio_desktop_qgis
+  image_pull_secrets: []
+  init_containers:
+  - command:
+    - sh
+    - -c
+    - sh /opt/init/.init.sh
+    image: eoepca/pde-code-server:develop
+    name: init-file-on-volume
+    volume_mounts:
+    - mount_path: /workspace
+      name: workspace-volume
+    - mount_path: /opt/init/.init.sh
+      name: init
+      sub_path: init
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    AWS_ACCESS_KEY_ID: SCWMRGD5GA0Y68XRKFW8
+    AWS_REGION: fr-par
+    AWS_S3_ENDPOINT: s3.fr-par.scw.cloud
+    AWS_SECRET_ACCESS_KEY: a9a7dc0c-8b0a-47b1-a311-b134b258dbb3
+    AWS_VIRTUAL_HOSTING: 'true'
+    HOME: /workspace
+  role_bindings: null
   volumes:
   - access_modes:
     - ReadWriteOnce
