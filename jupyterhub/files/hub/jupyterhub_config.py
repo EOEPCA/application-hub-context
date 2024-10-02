@@ -58,7 +58,7 @@ def pre_spawn_hook(spawner):
     namespace = f"{namespace_prefix}-{spawner.user.name}"
 
     workspace = DefaultApplicationHubContext(
-        namespace=namespace, spawner=spawner, config_path=config_path
+        namespace=namespace, spawner=spawner, config_path=config_path, skip_namespace_check=True
     )
 
     workspace.initialise()

@@ -581,6 +581,14 @@ class ApplicationHubContext(ABC):
 
 
 class DefaultApplicationHubContext(ApplicationHubContext):
+    
+    def __init__(self, namespace, spawner, config_path: str, kubeconfig_file: TextIO = None, skip_namespace_check=False, **kwargs):
+        
+        # skip_namespace_check is a flag to skip the namespace check and creation
+        self.skip_namespace_check = skip_namespace_check
+        
+        super().__init__(namespace, spawner, config_path, kubeconfig_file, **kwargs)
+    
     def get_profile_list(self):
         return self.config_parser.get_profiles()
 
@@ -655,10 +663,14 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         # process the config maps
         config_maps = self.config_parser.get_profile_config_maps(profile_id=profile_id)
 
-        # check the namespace
-        if not self.is_namespace_created():
-            self.spawner.log.info(f"Creating namespace {self.namespace}")
-            self.create_namespace()
+        if not self.skip_namespace_check:
+            self.spawner.log.info(f"Checking namespace {self.namespace}")
+            # check the namespace
+            if not self.is_namespace_created():
+                self.spawner.log.info(f"Creating namespace {self.namespace}")
+                self.create_namespace()
+        else:    
+            self.spawner.log.info(f"Skipping namespace check")
 
         if config_maps:
             for config_map in config_maps:
@@ -698,7 +710,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             ]
                         )
                         self.spawner.log.info(
-                            f"Mounted configmap {config_map.name} (key {config_map.key}) mode {int(config_map.default_mode, 8)}"  # noqa: E501
+                            f"Mounted configmap {config_map.name} (key {config_map.key})"  # noqa: E501
                         )
                 except Exception as err:
                     self.spawner.log.error(f"Unexpected {err=}, {type(err)=}")
