@@ -30,7 +30,7 @@ profiles:
       image: eoepca/pde-code-server:develop
       mem_guarantee: null
       mem_limit: 8G
-    slug: ellip_studio_coder_slug_s
+    slug: eoepca_coder_slug_s
   groups:
   - group-a
   - group-b
@@ -95,7 +95,7 @@ profiles:
       image: eoepca/pde-code-server:develop
       mem_guarantee: null
       mem_limit: 12G
-    slug: ellip_studio_coder_slug_m
+    slug: eoepca_coder_slug_m
   groups:
   - group-a
   - group-b
