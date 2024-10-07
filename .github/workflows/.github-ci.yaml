@@ -45,7 +45,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: docker-image-tar
-        path: application-hub-context_1.6.2.tar.gz
+        path: "application-hub-context_${APP_VERSION}.tar.gz"
 
     # Step 6: Scan Docker Image with Trivy
     - name: Scan Docker Image with Trivy
@@ -72,12 +72,12 @@ jobs:
     # Step 3: Extract the Docker Image tar.gz
     - name: Extract Docker Image tar.gz
       run: |
-        tar -xzf application-hub-context_1.6.2.tar.gz
+        tar -xzf "application-hub-context_${APP_VERSION}.tar.gz"
 
     # Step 4: Load Docker Image
     - name: Load Docker Image
       run: |
-        docker load -i application-hub-context_1.6.2.tar
+        docker load -i "application-hub-context_${APP_VERSION}.tar"
 
     # Step 5: Log in to Docker Registry (use GitHub secrets for security)
     - name: Login to Docker Registry
