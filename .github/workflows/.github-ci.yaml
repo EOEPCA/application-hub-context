@@ -163,5 +163,5 @@ jobs:
     # Step 11: Push to Docker Hub
     - name: push to Docker Hub
       run: |
-        docker push "$docker.io/{{ env.docker_tag }}"
-        docker push "$docker.io/{{ env.docker_tag_latest }}"
+        docker push "$docker.io/${{ env.docker_tag }}"
+        docker push "$docker.io/${{ env.docker_tag_latest }}"
