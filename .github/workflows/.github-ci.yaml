@@ -69,7 +69,7 @@ jobs:
     - name: Save Docker Image as tar.gz
       run: |
         tag="${docker_image_application}:${docker_image_version}"
-        docker save "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}" -o "${docker_image_application}_${docker_image_version}.tar"
+        docker save "${tag}" -o "${docker_image_application}_${docker_image_version}.tar"
         tar -czf "${docker_image_application}_${docker_image_version}.tar.gz" "${docker_image_application}_${docker_image_version}.tar"
 
     # Step 8: Upload Docker Image tar.gz as an artifact
