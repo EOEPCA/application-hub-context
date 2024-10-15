@@ -122,6 +122,7 @@ jobs:
         echo "branch_name=${GITHUB_BRANCH#refs/heads/}" >> $GITHUB_ENV
         echo "docker_tag=$docker_image_name:$docker_image_version" >> $GITHUB_ENV
         echo "docker_tag_latest=$docker_image_name:latest" >> $GITHUB_ENV 
+        echo "docker_hub="
         docker_image_application=(${docker_image_name#*/})
         echo "docker_image_application=$docker_image_application" >> $GITHUB_ENV
         echo "docker_image_version=$docker_image_version" >> $GITHUB_ENV
@@ -163,5 +164,7 @@ jobs:
     # Step 11: Push to Docker Hub
     - name: push to Docker Hub
       run: |
+        docker tag "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}"/"${tag}" "docker.io/${{ env.docker_tag }}"
+        docker tag "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}"/"${tag}" "docker.io/${{ env.docker_tag_latest }}"
         docker push "docker.io/${{ env.docker_tag }}"
         docker push "docker.io/${{ env.docker_tag_latest }}"
