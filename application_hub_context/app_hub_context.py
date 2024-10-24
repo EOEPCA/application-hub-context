@@ -701,7 +701,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                                 {
                                     "name": config_map.name,
                                     "configMap": {
-                                        "name": config_map.key,
+                                        "name": config_map.name,
                                         "defaultMode": int(config_map.default_mode, 8)
                                         if config_map.default_mode
                                         else 0o644,  # noqa: E501
