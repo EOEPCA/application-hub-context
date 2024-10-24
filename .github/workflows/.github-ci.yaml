@@ -84,8 +84,7 @@ jobs:
     - name: Scan Docker Image with Trivy
       run: |
         tag="${docker_image_application}:${docker_image_version}"
-        echo "${{ secrets.CR_PASSWORD }}" | docker login -u "${{ secrets.CR_USERNAME }}" --password-stdin "${{ secrets.CR_REGISTRY }}"
-        trivy image --no-progress --exit-code 1 --severity HIGH,CRITICAL,UNKNOWN --format table "${{ secrets.CR_REGISTRY }}/${{ secrets.CR_REPO }}/${tag}"
+        trivy image --no-progress --exit-code 1 --severity HIGH,CRITICAL,UNKNOWN --format table "${tag}"
         
 
   deploy:
