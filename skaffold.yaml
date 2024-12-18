@@ -11,19 +11,26 @@ profiles:
     deploy:
       helm:
         releases:
-          - name: jupyterhub
-            chartPath: jupyterhub
+          - name: application-hub
+            #chartPath: jupyterhub
+            remoteChart: eoepca/application-hub
             namespace: jupyter
+            version: 4.0.0
             createNamespace: true
-            valuesFiles:
-              - demo-values.yaml
+            valuesFiles: []
+            #  - demo-values.yaml
             setValueTemplates:
-              hub.image.name: "{{.IMAGE_REPO_hubimage}}/{{.IMAGE_TAG_hubimage}}@{{.IMAGE_DIGEST_hubimage}}"
+              jupyterhub.hub.image.name: "{{.IMAGE_REPO_hubimage}}/{{.IMAGE_TAG_hubimage}}@{{.IMAGE_DIGEST_hubimage}}"
+            setValues:
+              jupyterhub.hub.db.pvc.storageClassName: standard
+              jupyterhub.hub.extraEnv.JUPYTERHUB_CRYPT_KEY: 032d5bfe141a7eab86d57587879b33c5d168617cacb339823d7f47fe2933f880
+              jupyterhub.hub.extraEnv.APP_HUB_NAMESPACE: jupyter
             setFiles: {
               appHubConfig: ./files/hub/config.yml,
-              pageTheme: ./files/theme/page.html,
-              spawnPendingTheme: ./files/theme/spawn_pending.html,
-              spawnTheme: ./files/theme/spawn.html
+              jupHubConfig: ./files/hub/jupyterhub_config.py,
+              #pageTheme: ./files/theme/page.html,
+              #spawnPendingTheme: ./files/theme/spawn_pending.html,
+              #spawnTheme: ./files/theme/spawn.html
             }
 
     manifests:
@@ -32,38 +39,38 @@ profiles:
       - sk-k8s/script.yaml
       - sk-k8s/job.yaml
 
-  - name: eoepca-demo
-    deploy:
-      helm:
-        releases:
-          - name: jupyterhub
-            chartPath: jupyterhub
-            namespace: jupyter
-            createNamespace: true
-            valuesFiles:
-              - demo-eoepca-values.yaml
-            setValueTemplates:
-              hub.image.name: "{{.IMAGE_REPO_hubimage}}"
-              hub.image.tag: "{{.IMAGE_TAG_hubimage}}"
-              hub.image.pullPolicy: "Always"
-              hub.db.pvc.storageClassName: "managed-nfs-storage"
-              hub.image.pullSecrets: 
-              - "eoepca-plus-secret-ro"
-            setFiles: {
-              appHubConfig: ./eoepca-demo/config.yml,
-              pageTheme: ./files/theme/page.html,
-              spawnPendingTheme: ./files/theme/spawn_pending.html,
-              spawnTheme: ./files/theme/spawn.html
-            }
+  # - name: eoepca-demo
+  #   deploy:
+  #     helm:
+  #       releases:
+  #         - name: jupyterhub
+  #           chartPath: jupyterhub
+  #           namespace: jupyter
+  #           createNamespace: true
+  #           valuesFiles:
+  #             - demo-eoepca-values.yaml
+  #           setValueTemplates:
+  #             hub.image.name: "{{.IMAGE_REPO_hubimage}}"
+  #             hub.image.tag: "{{.IMAGE_TAG_hubimage}}"
+  #             hub.image.pullPolicy: "Always"
+  #             hub.db.pvc.storageClassName: "managed-nfs-storage"
+  #             hub.image.pullSecrets: 
+  #             - "eoepca-plus-secret-ro"
+  #           setFiles: {
+  #             appHubConfig: ./eoepca-demo/config.yml,
+  #             pageTheme: ./files/theme/page.html,
+  #             spawnPendingTheme: ./files/theme/spawn_pending.html,
+  #             spawnTheme: ./files/theme/spawn.html
+  #           }
 
-    manifests:
-      rawYaml:
-      - sk-k8s/cluster-role-binding.yaml
-      - sk-k8s/script.yaml
-      - sk-k8s/job.yaml
+  #   manifests:
+  #     rawYaml:
+  #     - sk-k8s/cluster-role-binding.yaml
+  #     - sk-k8s/script.yaml
+  #     - sk-k8s/job.yaml
 portForward:
 - resourceType: service
-  resourceName: proxy-public
+  resourceName: application-hub-proxy-public
   namespace: jupyter # Optional, if you are using a specific namespace
   port: 80 # Target port on the pod
   localPort: 8000 # Local port on your machine
