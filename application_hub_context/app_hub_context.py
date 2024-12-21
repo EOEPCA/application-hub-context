@@ -577,7 +577,8 @@ class ApplicationHubContext(ABC):
                     self.rbac_authorization_v1_api.delete_namespaced_role_binding(name, namespace)
                 elif kind == "ServiceAccount":
                     self.core_v1_api.delete_namespaced_service_account(name, namespace)
-                    
+                elif kind == "ConfigMap":
+                    self.core_v1_api.delete_namespaced_config_map(name, namespace)    
 
                 # Add other kinds as needed
                 else:
@@ -891,6 +892,23 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             self.spawner.log.error(
                                 f"Skipping creation of manifest {manifest.name}"
                             )
+
+            # process the pod env vars from config maps
+            env_from_config_maps = self.config_parser.get_profile_env_from_config_maps(
+                profile_id=profile_id
+            )
+            self.spawner.log.info(f"env_from_config_maps {env_from_config_maps}")
+            if env_from_config_maps:
+                self.spawner.extra_container_config["env_from"] = []
+            
+            for env_from_config_map in env_from_config_maps:
+                self.spawner.log.info(f"env_from_config_map {env_from_config_map}")
+                self.spawner.extra_container_config["env_from"].append(
+                        {
+                            "configMapRef": {
+                                "name": env_from_config_map,
+                            }})
+            self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
 
     def dispose(self):
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id

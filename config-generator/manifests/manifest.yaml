@@ -212,6 +212,7 @@ spec:
   template:
     metadata:
       labels:
+        app: localstack-{{ spawner.user.name }}
         app.kubernetes.io/name: localstack
         app.kubernetes.io/instance: localstack
     spec:
@@ -419,3 +420,11 @@ spec:
             - name: OVERRIDE_IN_DOCKER
               value: "1"
       volumes: []
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+data:
+  ENV_VAR1: value1
+  ENV_VAR2: value2

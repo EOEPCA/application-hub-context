@@ -131,3 +131,10 @@ class ConfigParser:
             return self.get_profile_by_id(profile_id=profile_id).manifests
         except AttributeError:
             pass
+
+    def get_profile_env_from_config_maps(self, profile_id):
+        """returns the profile env from config maps"""
+        try:
+            return self.get_profile_by_id(profile_id=profile_id).env_from_config_maps
+        except AttributeError:
+            pass

@@ -140,6 +140,7 @@ class Profile(BaseModel):
     image_pull_secrets: Optional[List[ImagePullSecret]] = []
     init_containers: Optional[List[InitContainer]] = []
     manifests: Optional[List[Manifest]] = None
+    env_from_config_maps: Optional[List[str]] = None
 
 
 class Config(BaseModel):
