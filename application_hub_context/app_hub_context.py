@@ -559,7 +559,6 @@ class ApplicationHubContext(ABC):
             self.custom_objects_api.create_cluster_custom_object(
                 group=group,
                 version=version,
-                #namespace=namespace,
                 plural=plural,
                 body=yaml.safe_load(rendered_manifest)
             )
@@ -751,9 +750,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     if not self.is_config_map_created(name=config_map.name):
                         self.spawner.log.info(f"Creating configmap {config_map.name}")
                         self.create_configmap(
-                            name=config_map.name,
+                            name=self.render(config_map.name),
                             key=config_map.key,
-                            content=self.template_manifest(config_map.content),
+                            content=self.render(config_map.content),
                             annotations=None,
                             labels=None,
                         )
@@ -763,7 +762,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                         self.spawner.volume_mounts.extend(
                             [
                                 {
-                                    "name": config_map.name,
+                                    "name": self.render(config_map.name),
                                     "mountPath": config_map.mount_path,
                                     "subPath": config_map.key,
                                 },
@@ -772,9 +771,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                         self.spawner.volumes.extend(
                             [
                                 {
-                                    "name": config_map.name,
+                                    "name": self.render(config_map.name),
                                     "configMap": {
-                                        "name": config_map.name,
+                                        "name": self.render(config_map.name),
                                         "defaultMode": int(config_map.default_mode, 8)
                                         if config_map.default_mode
                                         else 0o644,  # noqa: E501
@@ -783,12 +782,12 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             ]
                         )
                         self.spawner.log.info(
-                            f"Mounted configmap {config_map.name} (key {config_map.key})"  # noqa: E501
+                            f"Mounted configmap {self.render(config_map.name)} (key {config_map.key})"  # noqa: E501
                         )
                 except Exception as err:
                     self.spawner.log.error(f"Unexpected {err=}, {type(err)=}")
                     self.spawner.log.error(
-                        f"Skipping creation of configmap {config_map.name}"
+                        f"Skipping creation of configmap {self.render(config_map.name)}"
                     )
 
         #  process the volumes
@@ -796,25 +795,25 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
         if volumes:
             for volume in volumes:
-                self.spawner.log.info(f"Mounting volume {volume.name}")
+                self.spawner.log.info(f"Mounting volume {self.render(volume.name)}")
                 try:
-                    if not self.is_pvc_created(name=volume.claim_name):
+                    if not self.is_pvc_created(name=self.render(volume.claim_name)):
                         self.spawner.log.info(
-                            f"Creating volume claim {volume.claim_name})"
+                            f"Creating volume claim {self.render(volume.claim_name)})"
                         )
                         self.create_pvc(
-                            name=volume.claim_name,
+                            name=self.render(volume.claim_name),
                             access_modes=volume.access_modes,
                             size=volume.size,
                             storage_class=volume.storage_class,
                         )
                     self.spawner.log.info(
-                        f"Mounting volume {volume.name} (claim {volume.claim_name}))"
+                        f"Mounting volume {self.render(volume.name)} (claim {self.render(volume.claim_name)}))"
                     )
                     self.spawner.volume_mounts.extend(
                         [
                             {
-                                "name": volume.volume_mount.name,
+                                "name": self.render(volume.volume_mount.name),
                                 "mountPath": volume.volume_mount.mount_path,
                             },
                         ]
@@ -823,9 +822,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     self.spawner.volumes.extend(
                         [
                             {
-                                "name": volume.name,
+                                "name": self.render(volume.name),
                                 "persistentVolumeClaim": {
-                                    "claimName": volume.claim_name
+                                    "claimName": self.render(volume.claim_name)
                                 },
                             }
                         ]
@@ -833,7 +832,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
                 except Exception as err:
                     self.spawner.log.error(f"Unexpected {err}, {type(err)}")
-                    self.spawner.log.error(f"Skipping creation of volume {volume.name}")
+                    self.spawner.log.error(f"Skipping creation of volume {self.render(volume.name)}")
 
             # process the role bindings
             role_bindings = self.config_parser.get_profile_role_bindings(
@@ -842,17 +841,17 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
             if role_bindings:
                 for role_binding in role_bindings:
-                    self.spawner.log.info(f"Creating role binding {role_binding.name}")
+                    self.spawner.log.info(f"Creating role binding {self.render(role_binding.name)}")
                     try:
                         # checking if role binding is already created
-                        if not self.is_role_binding_created(name=role_binding.name):
+                        if not self.is_role_binding_created(name=self.render(role_binding.name)):
                             # checking if role is already created
-                            if not self.is_role_created(name=role_binding.role.name):
+                            if not self.is_role_created(name=self.render(role_binding.role.name)):
                                 self.spawner.log.info(
-                                    f"Creating role {role_binding.role.name}"
+                                    f"Creating role {self.render(role_binding.role.name)}"
                                 )
                                 self.create_role(
-                                    name=role_binding.role.name,
+                                    name=self.render(role_binding.role.name),
                                     verbs=role_binding.role.verbs,
                                     resources=role_binding.role.resources,
                                     api_groups=role_binding.role.api_groups,
@@ -860,7 +859,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
                             # creating role binding
                             self.create_role_binding(
-                                name=role_binding.name,
+                                name=self.render(role_binding.name),
                                 role=role_binding.role,
                                 subjects=role_binding.subjects,
                             )
@@ -868,7 +867,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     except Exception as err:
                         self.spawner.log.error(f"Unexpected {err}, {type(err)}")
                         self.spawner.log.error(
-                            f"Skipping creation of role binding {role_binding.name}"
+                            f"Skipping creation of role binding {self.render(role_binding.name)}"
                         )
             # process the role bindings
             image_pull_secrets = self.config_parser.get_profile_image_pull_secrets(
@@ -878,27 +877,27 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             if image_pull_secrets:
                 for image_pull_secret in image_pull_secrets:
                     self.spawner.log.info(
-                        f"Create image pull secret {image_pull_secret.name}"
+                        f"Create image pull secret {self.render(image_pull_secret.name)}"
                     )
                     try:
                         if not self.is_image_pull_secret_created(
-                            name=image_pull_secret.name
+                            name=self.render(image_pull_secret.name)
                         ):
                             self.spawner.log.info(
-                                f"Creating image pull secret {image_pull_secret.name})"
+                                f"Creating image pull secret {self.render(image_pull_secret.name)})"
                             )
                             self.create_image_pull_secret(
-                                name=image_pull_secret.name,
+                                name=self.render(image_pull_secret.name),
                                 data=image_pull_secret.data,
                             )
                     except Exception as err:
                         self.spawner.log.error(f"Unexpected {err}, {type(err)}")
                         self.spawner.log.error(
                             "Skipping creation of image pull secret"
-                            f" {image_pull_secret.name}"
+                            f" {self.render(image_pull_secret.name)}"
                         )
 
-                    self.patch_service_account(secret_name=image_pull_secret.name)
+                    self.patch_service_account(secret_name=self.render(image_pull_secret.name))
 
             # process the init containers
             init_containers = self.config_parser.get_profile_init_containers(
@@ -908,13 +907,13 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             if init_containers:
                 for init_container in init_containers:
                     self.spawner.log.info(
-                        f"Create init container {init_container.name}"
+                        f"Create init container {self.render(init_container.name)}"
                     )
                     try:
                         self.spawner.init_containers.extend(
                             [
                                 {
-                                    "name": init_container.name,
+                                    "name": self.render(init_container.name),
                                     "image": init_container.image,
                                     "command": init_container.command,
                                     "volumeMounts": [
@@ -929,7 +928,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     except Exception as err:
                         self.spawner.log.error(f"Unexpected {err}, {type(err)}")
                         self.spawner.log.error(
-                            f"Skipping creation of init container {init_container.name}"
+                            f"Skipping creation of init container {self.render(init_container.name)}"
                         )
 
             
@@ -946,7 +945,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                 self.spawner.extra_container_config["env_from"].append(
                         {
                             "configMapRef": {
-                                "name": env_from_config_map,
+                                "name": self.render(env_from_config_map),
                             }})
             self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
 
@@ -963,7 +962,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                 self.spawner.extra_container_config["env_from"].append(
                         {
                             "secretRef": {
-                                "name": env_from_secret,
+                                "name": self.render(env_from_secret),
                             }})
             self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
 
@@ -974,11 +973,11 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
             if secret_mounts:
                 for secret_mount in secret_mounts:
-                    self.spawner.log.info(f"Mounting secret {secret_mount.name}")
+                    self.spawner.log.info(f"Mounting secret {self.render(secret_mount.name)}")
                     self.spawner.volume_mounts.extend(
                         [
                             {
-                                "name": secret_mount.name,
+                                "name": self.render(secret_mount.name),
                                 "mountPath": secret_mount.mount_path,
                             },
                         ]
@@ -987,15 +986,15 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     self.spawner.volumes.extend(
                         [
                             {
-                                "name": secret_mount.name,
+                                "name": self.render(secret_mount.name),
                                 "secret": {
-                                    "secretName": secret_mount.name,
+                                    "secretName": self.render(secret_mount.name),
                                 },
                             }
                         ]
                     )
 
-                self.spawner.log.info(f"Mounted secret {secret_mount.name}")
+                self.spawner.log.info(f"Mounted secret {self.render(secret_mount.name)}")
 
     def dispose(self):
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
@@ -1009,9 +1008,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         if config_maps:
             for config_map in config_maps:
                 if not config_map.persist:
-                    self.spawner.log.info(f"Dispose config map {config_map.name}")
+                    self.spawner.log.info(f"Dispose config map {self.render(config_map.name)}")
 
-                    self.delete_config_map(name=config_map.name)
+                    self.delete_config_map(name=self.render(config_map.name))
 
         # deal with the volumes
         volumes = self.config_parser.get_profile_volumes(profile_id=profile_id)
@@ -1020,10 +1019,10 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             for volume in volumes:
                 if not volume.persist:
                     self.spawner.log.info(
-                        f"Dispose volume {volume.name}, claim {volume.claim_name}"
+                        f"Dispose volume {self.render(volume.name)}, claim {self.render(volume.claim_name)}"
                     )
 
-                    self.delete_pvc(name=volume.claim_name)
+                    self.delete_pvc(name=self.render(volume.claim_name))
 
         # deal with the role bindings
         role_bindings = self.config_parser.get_profile_role_bindings(
@@ -1033,7 +1032,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         if role_bindings:
             for role_binding in role_bindings:
                 if not role_binding.persist:
-                    self.spawner.log.info(f"Dispose role binding {role_binding.name}")
+                    self.spawner.log.info(f"Dispose role binding {self.render(role_binding.name)}")
                     self.delete_role_binding(role_binding=role_binding)
 
         # process the manifests
@@ -1053,9 +1052,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             for image_pull_secret in image_pull_secrets:
                 if not image_pull_secret.persist:
                     self.spawner.log.info(
-                        f"Dispose image pull secret {image_pull_secret.name}"
+                        f"Dispose image pull secret {self.render(image_pull_secret.name)}"
                     )
-                    self.delete_image_pull_secret(name=image_pull_secret.name)
+                    self.delete_image_pull_secret(name=self.render(image_pull_secret.name))
 
                     service_account_body = (
                         self.core_v1_api.read_namespaced_service_account(
@@ -1063,13 +1062,13 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                         )
                     )
                     for elem in service_account_body.image_pull_secrets:
-                        if elem.name == image_pull_secret.name:
+                        if elem.name == self.render(image_pull_secret.name):
                             service_account_body.image_pull_secrets.remove(
                                 {"name": elem.name}
                             )
 
                             self.spawner.log.info(
-                                f"Remove image pull secret {image_pull_secret.name}"
+                                f"Remove image pull secret {self.render(image_pull_secret.name)}"
                                 " from default service account"
                             )
 

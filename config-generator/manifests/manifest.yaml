@@ -441,7 +441,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: aws-credentials
+  name: aws-credentials-{{ spawner.user.name }}
 type: Opaque
 data:
   credentials: W2RlZmF1bHRdCmF3c19hY2Nlc3Nfa2V5X2lkPUFTSUFJT1NGT0ROTjdFWEFNUExFCmF3c19zZWNyZXRfYWNjZXNzX2tleT13SmFsclhVdG5GRU1JL0s3TURFTkcvYlB4UmZpQ1lFWEFNUExFS0VZCmF3c19zZXNzaW9uX3Rva2VuPUlRb0piM2pySmdCV05FTE5Hb2xHSkxFT3RTVEFOR1k0TFlPNUk0SzVOUlZFS1pPTkNTTk1HRlNUS1FNSUxXUjJPUzAwRklDRTExSlg=

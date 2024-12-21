@@ -494,7 +494,7 @@ profiles:
         credentials: W2RlZmF1bHRdCmF3c19hY2Nlc3Nfa2V5X2lkPUFTSUFJT1NGT0ROTjdFWEFNUExFCmF3c19zZWNyZXRfYWNjZXNzX2tleT13SmFsclhVdG5GRU1JL0s3TURFTkcvYlB4UmZpQ1lFWEFNUExFS0VZCmF3c19zZXNzaW9uX3Rva2VuPUlRb0piM2pySmdCV05FTE5Hb2xHSkxFT3RTVEFOR1k0TFlPNUk0SzVOUlZFS1pPTkNTTk1HRlNUS1FNSUxXUjJPUzAwRklDRTExSlg=
       kind: Secret
       metadata:
-        name: aws-credentials
+        name: aws-credentials-{{ spawner.user.name }}
       type: Opaque
     - apiVersion: helm.crossplane.io/v1beta1
       kind: Release
@@ -523,7 +523,7 @@ profiles:
   role_bindings: null
   secret_mounts:
   - mount_path: /workspace/.aws
-    name: aws-credentials
+    name: aws-credentials-{{ spawner.user.name }}
   volumes:
   - access_modes:
     - ReadWriteMany
@@ -1040,7 +1040,7 @@ profiles:
         credentials: W2RlZmF1bHRdCmF3c19hY2Nlc3Nfa2V5X2lkPUFTSUFJT1NGT0ROTjdFWEFNUExFCmF3c19zZWNyZXRfYWNjZXNzX2tleT13SmFsclhVdG5GRU1JL0s3TURFTkcvYlB4UmZpQ1lFWEFNUExFS0VZCmF3c19zZXNzaW9uX3Rva2VuPUlRb0piM2pySmdCV05FTE5Hb2xHSkxFT3RTVEFOR1k0TFlPNUk0SzVOUlZFS1pPTkNTTk1HRlNUS1FNSUxXUjJPUzAwRklDRTExSlg=
       kind: Secret
       metadata:
-        name: aws-credentials
+        name: aws-credentials-{{ spawner.user.name }}
       type: Opaque
     - apiVersion: helm.crossplane.io/v1beta1
       kind: Release
@@ -1069,7 +1069,7 @@ profiles:
   role_bindings: null
   secret_mounts:
   - mount_path: /workspace/.aws
-    name: aws-credentials
+    name: aws-credentials-{{ spawner.user.name }}
   volumes:
   - access_modes:
     - ReadWriteMany
@@ -1705,7 +1705,7 @@ profiles:
         credentials: W2RlZmF1bHRdCmF3c19hY2Nlc3Nfa2V5X2lkPUFTSUFJT1NGT0ROTjdFWEFNUExFCmF3c19zZWNyZXRfYWNjZXNzX2tleT13SmFsclhVdG5GRU1JL0s3TURFTkcvYlB4UmZpQ1lFWEFNUExFS0VZCmF3c19zZXNzaW9uX3Rva2VuPUlRb0piM2pySmdCV05FTE5Hb2xHSkxFT3RTVEFOR1k0TFlPNUk0SzVOUlZFS1pPTkNTTk1HRlNUS1FNSUxXUjJPUzAwRklDRTExSlg=
       kind: Secret
       metadata:
-        name: aws-credentials
+        name: aws-credentials-{{ spawner.user.name }}
       type: Opaque
     - apiVersion: helm.crossplane.io/v1beta1
       kind: Release

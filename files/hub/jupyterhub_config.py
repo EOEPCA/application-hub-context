@@ -6,7 +6,6 @@ from tornado.httpclient import AsyncHTTPClient
 
 from application_hub_context.app_hub_context import DefaultApplicationHubContext
 
-
 configuration_directory = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, configuration_directory)
 
@@ -96,7 +95,7 @@ c.JupyterHub.tornado_settings = {
 }
 
 jupyterhub_env = os.environ["JUPYTERHUB_ENV"].upper()
-jupyterhub_hub_host = "hub.jupyter"
+jupyterhub_hub_host = "application-hub-hub.jupyter"
 jupyterhub_single_user_image = os.environ["JUPYTERHUB_SINGLE_USER_IMAGE_NOTEBOOKS"]
 
 # Authentication
