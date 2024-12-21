@@ -38,6 +38,7 @@ class ApplicationHubContext(ABC):
         self.batch_v1_api = self._get_batch_v1_api()
         self.apps_v1_api = self._get_apps_v1_api()
         self.rbac_authorization_v1_api = self._get_rbac_authorization_v1_api()
+        self.custom_objects_api = self._get_custom_objects_api()
         self.namespace = namespace
         self.spawner = spawner
         # get the groups the user belongs to
@@ -127,6 +128,9 @@ class ApplicationHubContext(ABC):
 
     def _get_apps_v1_api(self) -> client.AppsV1Api:
         return client.AppsV1Api(self.api_client)
+    
+    def _get_custom_objects_api(self) -> client.CustomObjectsApi:    
+        return client.CustomObjectsApi(self.api_client)
 
     def is_object_created(self, read_method, **kwargs):
         read_methods = {}
@@ -541,12 +545,32 @@ class ApplicationHubContext(ABC):
         
         self.spawner.log.info(f"Applying manifest: {yaml.safe_load(rendered_manifest)}")
 
-        create_from_dict(
-            k8s_client=self.api_client,
-            data=yaml.safe_load(rendered_manifest),
-            verbose=True,
-            namespace=self.namespace,
-        )
+        if yaml.safe_load(rendered_manifest)["kind"] in "Release":
+            # see https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/CustomObjectsApi.md#create_namespaced_custom_object
+            # Define the Crossplane HelmRelease details
+            group = "helm.crossplane.io"  # API group for Crossplane HelmRelease
+            version = "v1beta1"          # API version
+            namespace = f"jupyter-{self.spawner.user.name}"         # Namespace of the HelmRelease
+            plural = "releases"           # Resource type
+
+            self.spawner.log.info(f"Creating Crossplane HelmRelease in namespace {namespace}")
+            
+            # Create the Crossplane HelmRelease
+            self.custom_objects_api.create_cluster_custom_object(
+                group=group,
+                version=version,
+                #namespace=namespace,
+                plural=plural,
+                body=yaml.safe_load(rendered_manifest)
+            )
+        else:
+            self.spawner.log.info(f"Creating K8s object in namespace {self.namespace}")
+            create_from_dict(
+                k8s_client=self.api_client,
+                data=yaml.safe_load(rendered_manifest),
+                verbose=True,
+                namespace=self.namespace,
+            )
 
     def unapply_manifests(self, manifest_content):
 
@@ -581,6 +605,13 @@ class ApplicationHubContext(ABC):
                     self.core_v1_api.delete_namespaced_config_map(name, namespace)    
                 elif kind == "Secret":
                     self.core_v1_api.delete_namespaced_secret(name, namespace)
+                elif kind == "Release":
+                    self.custom_objects_api.delete_cluster_custom_object(
+                        group="helm.crossplane.io",
+                        version="v1beta1",
+                        plural="releases",
+                        name=name,
+                    )
                 # Add other kinds as needed
                 else:
                     self.spawner.log.error(f"Unsupported kind: {kind}")
