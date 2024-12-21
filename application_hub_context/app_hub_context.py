@@ -548,12 +548,11 @@ class ApplicationHubContext(ABC):
         if yaml.safe_load(rendered_manifest)["kind"] in "Release":
             # see https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/CustomObjectsApi.md#create_namespaced_custom_object
             # Define the Crossplane HelmRelease details
-            group = "helm.crossplane.io"  # API group for Crossplane HelmRelease
-            version = "v1beta1"          # API version
-            namespace = f"jupyter-{self.spawner.user.name}"         # Namespace of the HelmRelease
-            plural = "releases"           # Resource type
+            group = "helm.crossplane.io" 
+            version = "v1beta1"          
+            plural = "releases"          
 
-            self.spawner.log.info(f"Creating Crossplane HelmRelease in namespace {namespace}")
+            self.spawner.log.info("Creating Crossplane HelmRelease")
             
             # Create the Crossplane HelmRelease
             self.custom_objects_api.create_cluster_custom_object(
@@ -562,6 +561,21 @@ class ApplicationHubContext(ABC):
                 plural=plural,
                 body=yaml.safe_load(rendered_manifest)
             )
+        elif yaml.safe_load(rendered_manifest)["kind"] in "ExternalSecret":
+            # Define the ExternalSecret details
+            group = "external-secrets.io"  
+            version = "v1beta1"          
+            namespace = f"jupyter-{self.spawner.user.name}"       
+            plural = "externalsecrets"
+
+            self.custom_objects_api.create_namespaced_custom_object(
+                group=group,
+                version=version,
+                namespace=namespace,
+                plural=plural,
+                body=yaml.safe_load(rendered_manifest)
+            )
+
         else:
             self.spawner.log.info(f"Creating K8s object in namespace {self.namespace}")
             create_from_dict(
@@ -609,6 +623,14 @@ class ApplicationHubContext(ABC):
                         group="helm.crossplane.io",
                         version="v1beta1",
                         plural="releases",
+                        name=name,
+                    )
+                elif kind == "ExternalSecret":
+                    self.custom_objects_api.delete_namespaced_custom_object(
+                        group="external-secrets.io",
+                        version="v1beta1",
+                        namespace=namespace,
+                        plural="externalsecrets",
                         name=name,
                     )
                 # Add other kinds as needed
@@ -715,7 +737,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         # process the config maps
         config_maps = self.config_parser.get_profile_config_maps(profile_id=profile_id)
 
-        # TODO move the manifests before dealing with the config objects 
         # process the manifests
         manifests = self.config_parser.get_profile_manifests(profile_id=profile_id)
 
