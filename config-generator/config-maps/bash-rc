@@ -23,3 +23,5 @@ if [ -f "/opt/conda/etc/profile.d/mamba.sh" ]; then
     . "/opt/conda/etc/profile.d/mamba.sh"
 fi
 # <<< conda initialize <<<
+
+a={{spawner.user.name}}

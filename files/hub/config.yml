@@ -11,7 +11,7 @@ profiles:
       \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
       \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
       if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
-      \nfi\n# <<< conda initialize <<<\n"
+      \nfi\n# <<< conda initialize <<<\n\na={{spawner.user.name}}"
     default_mode: null
     key: bash-rc
     mount_path: /workspace/.bashrc
@@ -499,7 +499,7 @@ profiles:
     - apiVersion: helm.crossplane.io/v1beta1
       kind: Release
       metadata:
-        name: wordpress-release
+        name: wordpress-jupyter-{{ spawner.user.name }}
         namespace: jupyter-{{ spawner.user.name }}
       spec:
         forProvider:
@@ -557,7 +557,7 @@ profiles:
       \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
       \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
       if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
-      \nfi\n# <<< conda initialize <<<\n"
+      \nfi\n# <<< conda initialize <<<\n\na={{spawner.user.name}}"
     default_mode: null
     key: bash-rc
     mount_path: /workspace/.bashrc
@@ -1045,7 +1045,7 @@ profiles:
     - apiVersion: helm.crossplane.io/v1beta1
       kind: Release
       metadata:
-        name: wordpress-release
+        name: wordpress-jupyter-{{ spawner.user.name }}
         namespace: jupyter-{{ spawner.user.name }}
       spec:
         forProvider:
@@ -1710,7 +1710,7 @@ profiles:
     - apiVersion: helm.crossplane.io/v1beta1
       kind: Release
       metadata:
-        name: wordpress-release
+        name: wordpress-jupyter-{{ spawner.user.name }}
         namespace: jupyter-{{ spawner.user.name }}
       spec:
         forProvider:

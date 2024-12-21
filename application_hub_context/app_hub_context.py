@@ -577,11 +577,11 @@ class ApplicationHubContext(ABC):
         for k8_object in manifest_content:
             kind = k8_object.get("kind")
             self.spawner.log.info(
-                f"Deleting {kind} {k8_object.get('metadata', {}).get('name')}"
+                f"Deleting {kind} {self.render(k8_object.get('metadata', {}).get('name'))}"
             )
             metadata = k8_object.get("metadata", {})
             namespace = metadata.get("namespace", self.namespace)
-            name = metadata.get("name")
+            name = self.render(metadata.get("name"))
 
             if not kind or not name:
                 continue
@@ -630,6 +630,11 @@ class DefaultApplicationHubContext(ApplicationHubContext):
     
     def get_profile_list(self):
         return self.config_parser.get_profiles()
+
+    def render(self, manifest):
+        # render the manifest using the spawner object
+        template = Template(yaml.dump(manifest))
+        return yaml.safe_load(template.render(spawner=self.spawner))
 
     def initialise(self):
         # set the spawner timeout to 10 minutes
@@ -698,10 +703,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             profile_id=profile_id
         )
         self.set_pod_env_vars(**(config_env_vars or {}))
-
-        # process the config maps
-        config_maps = self.config_parser.get_profile_config_maps(profile_id=profile_id)
-
+        
         if not self.skip_namespace_check:
             self.spawner.log.info(f"Checking namespace {self.namespace}")
             # check the namespace
@@ -711,6 +713,38 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         else:    
             self.spawner.log.info(f"Skipping namespace check")
 
+        # process the config maps
+        config_maps = self.config_parser.get_profile_config_maps(profile_id=profile_id)
+
+        # TODO move the manifests before dealing with the config objects 
+        # process the manifests
+        manifests = self.config_parser.get_profile_manifests(profile_id=profile_id)
+
+        if manifests:
+            for manifest in manifests:
+                self.spawner.log.info(f"Apply manifest {manifest.name}")
+
+                
+                for k8_object in manifest.content:
+                    try:
+                        # Log the object and its type
+                        self.spawner.log.info(f"K8 Object: {k8_object}")
+                        self.spawner.log.info(f"Object Type: {type(k8_object)}")
+
+                        # Check and log the 'kind' of the Kubernetes object
+                        if 'kind' in k8_object:
+                            self.spawner.log.info(f"Applying manifest of kind: {k8_object['kind']}")
+                            self.apply_manifest(k8_object)  # Apply the manifest
+                        else:
+                            self.spawner.log.warning(f"Manifest does not contain a 'kind': {k8_object}")
+
+                    except Exception as err:
+                        self.spawner.log.error(f"Unexpected {err}, {type(err)}")
+                        self.spawner.log.error(
+                            f"Skipping creation of manifest {manifest.name}"
+                        )
+
+
         if config_maps:
             for config_map in config_maps:
                 try:
@@ -719,7 +753,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                         self.create_configmap(
                             name=config_map.name,
                             key=config_map.key,
-                            content=config_map.content,
+                            content=self.template_manifest(config_map.content),
                             annotations=None,
                             labels=None,
                         )
@@ -898,33 +932,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             f"Skipping creation of init container {init_container.name}"
                         )
 
-            # process the manifests
-            manifests = self.config_parser.get_profile_manifests(profile_id=profile_id)
-
-            if manifests:
-                for manifest in manifests:
-                    self.spawner.log.info(f"Apply manifest {manifest.name}")
-
-                    
-                    for k8_object in manifest.content:
-                        try:
-                            # Log the object and its type
-                            self.spawner.log.info(f"K8 Object: {k8_object}")
-                            self.spawner.log.info(f"Object Type: {type(k8_object)}")
-
-                            # Check and log the 'kind' of the Kubernetes object
-                            if 'kind' in k8_object:
-                                self.spawner.log.info(f"Applying manifest of kind: {k8_object['kind']}")
-                                self.apply_manifest(k8_object)  # Apply the manifest
-                            else:
-                                self.spawner.log.warning(f"Manifest does not contain a 'kind': {k8_object}")
-
-                        except Exception as err:
-                            self.spawner.log.error(f"Unexpected {err}, {type(err)}")
-                            self.spawner.log.error(
-                                f"Skipping creation of manifest {manifest.name}"
-                            )
-
+            
             # process the pod env vars from config maps
             env_from_config_maps = self.config_parser.get_profile_env_from_config_maps(
                 profile_id=profile_id
