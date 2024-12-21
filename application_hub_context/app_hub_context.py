@@ -4,6 +4,7 @@ import yaml
 from abc import ABC
 from http import HTTPStatus
 from typing import Dict, TextIO
+from jinja2 import Template
 
 from kubernetes import client, config
 from kubernetes.utils import create_from_dict
@@ -535,9 +536,14 @@ class ApplicationHubContext(ABC):
     # def apply_manifests(self, manifest_file):
     def apply_manifest(self, manifest):
 
+        template = Template(yaml.dump(manifest))
+        rendered_manifest = template.render(spawner=self.spawner)
+        
+        self.spawner.log.info(f"Applying manifest: {yaml.safe_load(rendered_manifest)}")
+
         create_from_dict(
             k8s_client=self.api_client,
-            data=manifest,
+            data=yaml.safe_load(rendered_manifest),
             verbose=True,
             namespace=self.namespace,
         )
