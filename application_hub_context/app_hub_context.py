@@ -579,7 +579,8 @@ class ApplicationHubContext(ABC):
                     self.core_v1_api.delete_namespaced_service_account(name, namespace)
                 elif kind == "ConfigMap":
                     self.core_v1_api.delete_namespaced_config_map(name, namespace)    
-
+                elif kind == "Secret":
+                    self.core_v1_api.delete_namespaced_secret(name, namespace)
                 # Add other kinds as needed
                 else:
                     self.spawner.log.error(f"Unsupported kind: {kind}")
@@ -909,6 +910,24 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                                 "name": env_from_config_map,
                             }})
             self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
+
+            # process the pod env vars from secrets
+            env_from_secrets = self.config_parser.get_profile_env_from_secrets(
+                profile_id=profile_id
+            )
+            self.spawner.log.info(f"env_from_secrets {env_from_secrets}")
+            if env_from_secrets and self.spawner.extra_container_config["env_from"] is None:
+                self.spawner.extra_container_config["env_from"] = []
+
+            for env_from_secret in env_from_secrets:
+                self.spawner.log.info(f"env_from_secret {env_from_secret}")
+                self.spawner.extra_container_config["env_from"].append(
+                        {
+                            "secretRef": {
+                                "name": env_from_secret,
+                            }})
+            self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
+
 
     def dispose(self):
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
