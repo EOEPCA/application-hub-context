@@ -3,3 +3,4 @@ values.yaml
 config.yml
 config-generator
 skaffold.yaml
+files/*
