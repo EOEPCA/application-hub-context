@@ -929,6 +929,35 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
 
 
+            secret_mounts = self.config_parser.get_profile_secret_mounts(
+                profile_id=profile_id
+            )
+
+            if secret_mounts:
+                for secret_mount in secret_mounts:
+                    self.spawner.log.info(f"Mounting secret {secret_mount.name}")
+                    self.spawner.volume_mounts.extend(
+                        [
+                            {
+                                "name": secret_mount.name,
+                                "mountPath": secret_mount.mount_path,
+                            },
+                        ]
+                    )
+
+                    self.spawner.volumes.extend(
+                        [
+                            {
+                                "name": secret_mount.name,
+                                "secret": {
+                                    "secretName": secret_mount.name,
+                                },
+                            }
+                        ]
+                    )
+
+                self.spawner.log.info(f"Mounted secret {secret_mount.name}")
+
     def dispose(self):
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
 

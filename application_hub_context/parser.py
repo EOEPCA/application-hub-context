@@ -146,3 +146,9 @@ class ConfigParser:
         except AttributeError:
             pass
         
+    def get_profile_secret_mounts(self, profile_id):
+        """returns the profile secret mounts"""
+        try:
+            return self.get_profile_by_id(profile_id=profile_id).secret_mounts
+        except AttributeError:
+            pass

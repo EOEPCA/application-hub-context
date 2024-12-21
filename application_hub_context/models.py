@@ -163,6 +163,10 @@ class ImagePullSecret(BaseModel):
     persist: bool = True
     data: Optional[str] = None
 
+class SecretMount(BaseModel):
+    name: str
+    mount_path: str
+
 
 class Profile(BaseModel):
     id: str
@@ -179,6 +183,7 @@ class Profile(BaseModel):
     manifests: Optional[List[Manifest]] = None
     env_from_config_maps: Optional[List[str]] = None
     env_from_secrets: Optional[List[str]] = None
+    secret_mounts: Optional[List[SecretMount]] = None
 
 class Config(BaseModel):
     profiles: List[Profile]
