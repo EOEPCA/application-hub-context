@@ -209,6 +209,11 @@ class ApplicationHubContext(ABC):
         self, labels: dict = None, annotations: dict = None
     ) -> client.V1Namespace:
 
+        if labels is None:
+            labels = self.spawner.user_namespace_labels
+        else:
+            labels = {**labels, **self.spawner.user_namespace_labels}
+
         if self.is_namespace_created():
             self.spawner.log.info(
                 f"namespace {self.namespace} exists, skipping creation"
@@ -545,14 +550,14 @@ class ApplicationHubContext(ABC):
         
         self.spawner.log.info(f"Applying manifest: {yaml.safe_load(rendered_manifest)}")
 
-        if yaml.safe_load(rendered_manifest)["kind"] in "Release":
+        if yaml.safe_load(rendered_manifest)["kind"] in ["Release"]:
             # see https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/CustomObjectsApi.md#create_namespaced_custom_object
             # Define the Crossplane HelmRelease details
             group = "helm.crossplane.io" 
             version = "v1beta1"          
             plural = "releases"          
 
-            self.spawner.log.info("Creating Crossplane HelmRelease")
+            self.spawner.log.info(f"Creating Crossplane HelmRelease {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
             
             # Create the Crossplane HelmRelease
             self.custom_objects_api.create_cluster_custom_object(
@@ -561,7 +566,7 @@ class ApplicationHubContext(ABC):
                 plural=plural,
                 body=yaml.safe_load(rendered_manifest)
             )
-        elif yaml.safe_load(rendered_manifest)["kind"] in "ExternalSecret":
+        elif yaml.safe_load(rendered_manifest)["kind"] in ["ExternalSecret"]:
             # Define the ExternalSecret details
             group = "external-secrets.io"  
             version = "v1beta1"          
@@ -576,6 +581,15 @@ class ApplicationHubContext(ABC):
                 body=yaml.safe_load(rendered_manifest)
             )
 
+        elif yaml.safe_load(rendered_manifest)["kind"] in ["Secret"]:
+
+            self.spawner.log.info(f"Creating K8s Secret {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
+            create_from_dict(
+                k8s_client=self.api_client,
+                data=yaml.safe_load(rendered_manifest),
+                verbose=True,
+                namespace=self.namespace,
+            )
         else:
             self.spawner.log.info(f"Creating K8s object in namespace {self.namespace}")
             create_from_dict(
@@ -647,6 +661,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         # skip_namespace_check is a flag to skip the namespace check and creation
         self.skip_namespace_check = skip_namespace_check
         
+        # add kwargs as members of the class
+        self.__dict__.update(kwargs)
+
         super().__init__(namespace, spawner, config_path, kubeconfig_file, **kwargs)
     
     def get_profile_list(self):

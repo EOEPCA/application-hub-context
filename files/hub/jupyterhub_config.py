@@ -50,7 +50,7 @@ def pre_spawn_hook(spawner):
     namespace = f"{namespace_prefix}-{spawner.user.name}"
 
     workspace = DefaultApplicationHubContext(
-        namespace=namespace, spawner=spawner, config_path=config_path
+        namespace=namespace, spawner=spawner, config_path=config_path, skip_namespace_check=False, 
     )
 
     workspace.initialise()
@@ -102,7 +102,7 @@ jupyterhub_single_user_image = os.environ["JUPYTERHUB_SINGLE_USER_IMAGE_NOTEBOOK
 c.LocalAuthenticator.create_system_users = True
 c.Authenticator.admin_users = {"jovyan"}
 # Deprecated
-c.Authenticator.allowed_users = {"jovyan"}
+c.Authenticator.allowed_users = {"jovyan", "alice", "bob"}
 c.JupyterHub.authenticator_class = "dummy"
 
 # HTTP Proxy auth token
@@ -158,6 +158,7 @@ c.KubeSpawner.namespace = "jupyter"
 
 # User namespace
 c.KubeSpawner.enable_user_namespaces = True
+c.KubeSpawner.user_namespace_labels = {"eso": "enabled"}
 
 # Volumes
 # volumes are managed by the pre_spawn_hook/post_stop_hook
