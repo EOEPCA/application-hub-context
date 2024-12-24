@@ -1,8 +1,6 @@
 apiVersion: skaffold/v4beta9
 kind: Config
 build:
-  # tagPolicy: 
-  #   sha256: {}
   artifacts:
     - image: hubimage
 
@@ -11,27 +9,55 @@ profiles:
     deploy:
       helm:
         releases:
-          - name: application-hub
-            #chartPath: jupyterhub
+          - name: jupyterhub
             remoteChart: eoepca/application-hub
             namespace: jupyter
-            version: 4.0.0
+            version: 4.0.1
             createNamespace: true
             valuesFiles: []
-            #  - demo-values.yaml
             setValueTemplates:
-              jupyterhub.hub.image.name: "{{.IMAGE_REPO_hubimage}}/{{.IMAGE_TAG_hubimage}}@{{.IMAGE_DIGEST_hubimage}}"
+              jupyterhub.hub.image.name: "{{.IMAGE_REPO_hubimage}}"
+              jupyterhub.hub.image.tag: "{{.IMAGE_TAG_hubimage}}@{{.IMAGE_DIGEST_hubimage}}"
             setValues:
-              jupyterhub.hub.db.pvc.storageClassName: standard
-              jupyterhub.hub.extraEnv.JUPYTERHUB_CRYPT_KEY: 032d5bfe141a7eab86d57587879b33c5d168617cacb339823d7f47fe2933f880
+              jupyterhub.hub.image.pullSecrets: ["eoepca-plus-secret-ro"]
+              jupyterhub.hub.db.pvc.storageClassName: scw-bssd
+              jupyterhub.hub.extraEnv.STORAGE_CLASS: scw-bssd
+              jupyterhub.proxy.secretToken: "032d5bfe141a7eab86d57587879b33c5d168617cacb339823d7f47fe2933f880"
               jupyterhub.hub.extraEnv.APP_HUB_NAMESPACE: jupyter
-            setFiles: {
-              appHubConfig: ./files/hub/config.yml,
-              jupHubConfig: ./files/hub/jupyterhub_config.py,
-              #pageTheme: ./files/theme/page.html,
-              #spawnPendingTheme: ./files/theme/spawn_pending.html,
-              #spawnTheme: ./files/theme/spawn.html
-            }
+              jupyterhub.hub.networkPolicy.enabled: false
+            setFiles:
+              configYml: ./files/hub/config.yml
+              jupyterConfig: ./files/hub/jupyterhub_config.py
+
+    manifests:
+      rawYaml:
+      - sk-k8s/cluster-role-binding.yaml
+      - sk-k8s/script.yaml
+      - sk-k8s/job.yaml
+
+  - name: minikube
+    deploy:
+      helm:
+        releases:
+          - name: jupyterhub
+            remoteChart: eoepca/application-hub
+            namespace: jupyter
+            version: 4.0.1
+            createNamespace: true
+            valuesFiles: []
+            setValueTemplates:
+              jupyterhub.hub.image.name: "{{.IMAGE_REPO_hubimage}}"
+              jupyterhub.hub.image.tag: "{{.IMAGE_TAG_hubimage}}@{{.IMAGE_DIGEST_hubimage}}"
+            setValues:
+              jupyterhub.hub.image.pullSecrets: []
+              jupyterhub.hub.db.pvc.storageClassName: standard
+              jupyterhub.hub.extraEnv.STORAGE_CLASS: standard
+              jupyterhub.proxy.secretToken: "032d5bfe141a7eab86d57587879b33c5d168617cacb339823d7f47fe2933f880"
+              jupyterhub.hub.extraEnv.APP_HUB_NAMESPACE: jupyter
+              jupyterhub.hub.networkPolicy.enabled: false
+            setFiles:
+              configYml: ./files/hub/config.yml
+              jupyterConfig: ./files/hub/jupyterhub_config.py
 
     manifests:
       rawYaml:

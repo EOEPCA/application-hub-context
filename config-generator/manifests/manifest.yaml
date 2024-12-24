@@ -463,3 +463,43 @@ spec:
         type: ClusterIP
   providerConfigRef:
     name: helm-provider
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: data-by-name
+  namespace: jupyter-{{ spawner.user.name }}
+spec:
+  refreshInterval: 15s
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: k8s-secret-store
+  target:
+    name: data-by-name
+    creationPolicy: Owner
+
+  data:
+    - secretKey: secret-value
+      remoteRef:
+        key: secret-one # name of the secret
+        property: "the-key" # key in the secret
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: eoepca-plus-secret-ro
+  namespace: jupyter-{{ spawner.user.name }}
+spec:
+  refreshInterval: 15s
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: k8s-secret-store
+  target:
+    name: eoepca-plus-secret-ro
+    creationPolicy: Owner
+
+  data:
+    - secretKey: .dockerconfigjson
+      remoteRef:
+        key: eoepca-plus-secret-ro # name of the secret
+        property: ".dockerconfigjson" # key in the secret

@@ -548,7 +548,7 @@ class ApplicationHubContext(ABC):
         template = Template(yaml.dump(manifest))
         rendered_manifest = template.render(spawner=self.spawner)
         
-        self.spawner.log.info(f"Applying manifest: {yaml.safe_load(rendered_manifest)}")
+        self.spawner.log.info(f"Applying manifest name: {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
 
         if yaml.safe_load(rendered_manifest)["kind"] in ["Release"]:
             # see https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/CustomObjectsApi.md#create_namespaced_custom_object
@@ -567,6 +567,7 @@ class ApplicationHubContext(ABC):
                 body=yaml.safe_load(rendered_manifest)
             )
         elif yaml.safe_load(rendered_manifest)["kind"] in ["ExternalSecret"]:
+            self.spawner.log.info(f"Creating ExternalSecret {yaml.safe_load(rendered_manifest).get('metadata').get('name')} in namespace {self.namespace}")
             # Define the ExternalSecret details
             group = "external-secrets.io"  
             version = "v1beta1"          
@@ -583,7 +584,7 @@ class ApplicationHubContext(ABC):
 
         elif yaml.safe_load(rendered_manifest)["kind"] in ["Secret"]:
 
-            self.spawner.log.info(f"Creating K8s Secret {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
+            self.spawner.log.info(f"Creating Secret {yaml.safe_load(rendered_manifest).get('metadata').get('name')} in namespace {self.namespace}")
             create_from_dict(
                 k8s_client=self.api_client,
                 data=yaml.safe_load(rendered_manifest),
@@ -591,7 +592,7 @@ class ApplicationHubContext(ABC):
                 namespace=self.namespace,
             )
         else:
-            self.spawner.log.info(f"Creating K8s object in namespace {self.namespace}")
+            self.spawner.log.info(f"Creating object of kind {yaml.safe_load(rendered_manifest).get('kind')} name {yaml.safe_load(rendered_manifest).get('metadata').get('name')} in namespace {self.namespace}")
             create_from_dict(
                 k8s_client=self.api_client,
                 data=yaml.safe_load(rendered_manifest),
@@ -633,17 +634,21 @@ class ApplicationHubContext(ABC):
                 elif kind == "Secret":
                     self.core_v1_api.delete_namespaced_secret(name, namespace)
                 elif kind == "Release":
-                    self.custom_objects_api.delete_cluster_custom_object(
+                    self.spawner.log.info(f"Deleting Crossplane HelmRelease {name}")
+                    response = self.custom_objects_api.delete_cluster_custom_object(
                         group="helm.crossplane.io",
                         version="v1beta1",
                         plural="releases",
                         name=name,
                     )
+                    self.spawner.log.info(f"Response: {response}")
+
                 elif kind == "ExternalSecret":
+                    self.spawner.log.info(f"Deleting ExternalSecret {name} from namespace {self.render(namespace)}")
                     self.custom_objects_api.delete_namespaced_custom_object(
                         group="external-secrets.io",
                         version="v1beta1",
-                        namespace=namespace,
+                        namespace=self.render(namespace),
                         plural="externalsecrets",
                         name=name,
                     )
@@ -764,9 +769,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                 
                 for k8_object in manifest.content:
                     try:
-                        # Log the object and its type
-                        self.spawner.log.info(f"K8 Object: {k8_object}")
-                        self.spawner.log.info(f"Object Type: {type(k8_object)}")
 
                         # Check and log the 'kind' of the Kubernetes object
                         if 'kind' in k8_object:
@@ -934,7 +936,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             "Skipping creation of image pull secret"
                             f" {self.render(image_pull_secret.name)}"
                         )
-
+                    self.spawner.log.info(
+                        f"Patch service account with image pull secret {self.render(image_pull_secret.name)}"
+                    )
                     self.patch_service_account(secret_name=self.render(image_pull_secret.name))
 
             # process the init containers

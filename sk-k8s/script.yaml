@@ -18,5 +18,5 @@ data:
     do
       curl --request POST --location http://application-hub-hub.jupyter.svc.cluster.local:8081/hub/api/groups/${group} --header "Authorization: Bearer $token" --header 'Content-Type: application/json'
       # add user to group
-      curl --request POST --location http://application-hub-hub.jupyter.svc.cluster.local:8081/hub/api/groups/${group}/users --header "Authorization: Bearer $token" --header 'Content-Type: application/json' --data '{"users": ["jovyan"]}'
+      curl --request POST --location http://application-hub-hub.jupyter.svc.cluster.local:8081/hub/api/groups/${group}/users --header "Authorization: Bearer $token" --header 'Content-Type: application/json' --data '{"users": ["jovyan", "alice", "bob"]}'
     done

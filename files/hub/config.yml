@@ -36,11 +36,15 @@ profiles:
   - my-config
   env_from_secrets:
   - my-secret
+  - data-by-name
   groups:
   - group-a
   - group-b
   id: profile_studio_coder1
-  image_pull_secrets: []
+  image_pull_secrets:
+  - data: null
+    name: eoepca-plus-secret-ro
+    persist: true
   init_containers: []
   manifests:
   - content:
@@ -513,6 +517,42 @@ profiles:
               type: ClusterIP
         providerConfigRef:
           name: helm-provider
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: data-by-name
+        namespace: jupyter-{{ spawner.user.name }}
+      spec:
+        data:
+        - remoteRef:
+            key: secret-one
+            property: the-key
+          secretKey: secret-value
+        refreshInterval: 15s
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: k8s-secret-store
+        target:
+          creationPolicy: Owner
+          name: data-by-name
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: eoepca-plus-secret-ro
+        namespace: jupyter-{{ spawner.user.name }}
+      spec:
+        data:
+        - remoteRef:
+            key: eoepca-plus-secret-ro
+            property: .dockerconfigjson
+          secretKey: .dockerconfigjson
+        refreshInterval: 15s
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: k8s-secret-store
+        target:
+          creationPolicy: Owner
+          name: eoepca-plus-secret-ro
     key: manifests
     name: manifests
     persist: false
@@ -524,6 +564,10 @@ profiles:
   secret_mounts:
   - mount_path: /workspace/.aws
     name: aws-credentials-{{ spawner.user.name }}
+  - mount_path: /workspace/.data-by-name
+    name: data-by-name
+  - mount_path: /workspace/.docker
+    name: eoepca-plus-secret-ro
   volumes:
   - access_modes:
     - ReadWriteMany
@@ -582,11 +626,15 @@ profiles:
   - my-config
   env_from_secrets:
   - my-secret
+  - data-by-name
   groups:
   - group-a
   - group-b
   id: profile_studio_coder2
-  image_pull_secrets: []
+  image_pull_secrets:
+  - data: null
+    name: eoepca-plus-secret-ro
+    persist: true
   init_containers: []
   manifests:
   - content:
@@ -1059,6 +1107,42 @@ profiles:
               type: ClusterIP
         providerConfigRef:
           name: helm-provider
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: data-by-name
+        namespace: jupyter-{{ spawner.user.name }}
+      spec:
+        data:
+        - remoteRef:
+            key: secret-one
+            property: the-key
+          secretKey: secret-value
+        refreshInterval: 15s
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: k8s-secret-store
+        target:
+          creationPolicy: Owner
+          name: data-by-name
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: eoepca-plus-secret-ro
+        namespace: jupyter-{{ spawner.user.name }}
+      spec:
+        data:
+        - remoteRef:
+            key: eoepca-plus-secret-ro
+            property: .dockerconfigjson
+          secretKey: .dockerconfigjson
+        refreshInterval: 15s
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: k8s-secret-store
+        target:
+          creationPolicy: Owner
+          name: eoepca-plus-secret-ro
     key: manifests
     name: manifests
     persist: false
@@ -1070,6 +1154,10 @@ profiles:
   secret_mounts:
   - mount_path: /workspace/.aws
     name: aws-credentials-{{ spawner.user.name }}
+  - mount_path: /workspace/.data-by-name
+    name: data-by-name
+  - mount_path: /workspace/.docker
+    name: eoepca-plus-secret-ro
   volumes:
   - access_modes:
     - ReadWriteMany
@@ -1724,6 +1812,42 @@ profiles:
               type: ClusterIP
         providerConfigRef:
           name: helm-provider
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: data-by-name
+        namespace: jupyter-{{ spawner.user.name }}
+      spec:
+        data:
+        - remoteRef:
+            key: secret-one
+            property: the-key
+          secretKey: secret-value
+        refreshInterval: 15s
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: k8s-secret-store
+        target:
+          creationPolicy: Owner
+          name: data-by-name
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: eoepca-plus-secret-ro
+        namespace: jupyter-{{ spawner.user.name }}
+      spec:
+        data:
+        - remoteRef:
+            key: eoepca-plus-secret-ro
+            property: .dockerconfigjson
+          secretKey: .dockerconfigjson
+        refreshInterval: 15s
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: k8s-secret-store
+        target:
+          creationPolicy: Owner
+          name: eoepca-plus-secret-ro
     key: manifests
     name: manifests
     persist: false
