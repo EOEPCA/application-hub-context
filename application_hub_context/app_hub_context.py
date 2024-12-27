@@ -1084,8 +1084,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
         self.spawner.log.info(f"Delete manifest {manifests}")
         if manifests:
             for manifest in manifests:
-                self.spawner.log.info(f"Un-apply manifest {manifest.name}")
-                self.unapply_manifests(manifest_content=manifest.content)
+                if not manifest.persist:
+                    self.spawner.log.info(f"Un-apply manifest {manifest.name}")
+                    self.unapply_manifests(manifest_content=manifest.content)
 
         # deal with the image pull secrets
         image_pull_secrets = self.config_parser.get_profile_image_pull_secrets(
