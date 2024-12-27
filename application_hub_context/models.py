@@ -166,7 +166,7 @@ class ImagePullSecret(BaseModel):
 class SecretMount(BaseModel):
     name: str
     mount_path: str
-
+    sub_path: Optional[str] = None
 
 class Profile(BaseModel):
     id: str

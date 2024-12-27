@@ -982,31 +982,32 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             if env_from_config_maps:
                 self.spawner.extra_container_config["env_from"] = []
             
-            for env_from_config_map in env_from_config_maps:
-                self.spawner.log.info(f"env_from_config_map {env_from_config_map}")
-                self.spawner.extra_container_config["env_from"].append(
-                        {
-                            "configMapRef": {
-                                "name": self.render(env_from_config_map),
-                            }})
-            self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
+                for env_from_config_map in env_from_config_maps:
+                    self.spawner.log.info(f"env_from_config_map {env_from_config_map}")
+                    self.spawner.extra_container_config["env_from"].append(
+                            {
+                                "configMapRef": {
+                                    "name": self.render(env_from_config_map),
+                                }})
+                self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
 
             # process the pod env vars from secrets
             env_from_secrets = self.config_parser.get_profile_env_from_secrets(
                 profile_id=profile_id
             )
             self.spawner.log.info(f"env_from_secrets {env_from_secrets}")
-            if env_from_secrets and self.spawner.extra_container_config["env_from"] is None:
-                self.spawner.extra_container_config["env_from"] = []
+            if env_from_secrets:
+                if self.spawner.extra_container_config["env_from"] is None:
+                    self.spawner.extra_container_config["env_from"] = []
 
-            for env_from_secret in env_from_secrets:
-                self.spawner.log.info(f"env_from_secret {env_from_secret}")
-                self.spawner.extra_container_config["env_from"].append(
-                        {
-                            "secretRef": {
-                                "name": self.render(env_from_secret),
-                            }})
-            self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
+                for env_from_secret in env_from_secrets:
+                    self.spawner.log.info(f"env_from_secret {env_from_secret}")
+                    self.spawner.extra_container_config["env_from"].append(
+                            {
+                                "secretRef": {
+                                    "name": self.render(env_from_secret),
+                                }})
+                self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
 
 
             secret_mounts = self.config_parser.get_profile_secret_mounts(
@@ -1021,6 +1022,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             {
                                 "name": self.render(secret_mount.name),
                                 "mountPath": secret_mount.mount_path,
+                                "subPath": secret_mount.sub_path,
                             },
                         ]
                     )

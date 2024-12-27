@@ -124,9 +124,11 @@ class ImagePullSecret(BaseModel):
     persist: bool = True
     data: Optional[str] = None
 
+
 class SecretMount(BaseModel):
     name: str
     mount_path: str
+    sub_path: Optional[str] = None
 
 
 class Profile(BaseModel):
