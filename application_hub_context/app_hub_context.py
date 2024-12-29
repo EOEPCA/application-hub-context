@@ -1105,9 +1105,11 @@ class DefaultApplicationHubContext(ApplicationHubContext):
 
         # process the manifests
         manifests = self.config_parser.get_profile_manifests(profile_id=profile_id)
-        self.spawner.log.info(f"Delete manifest {manifests}")
+
         if manifests:
             for manifest in manifests:
+                if manifest.persist:
+                    self.spawner.log.info(f"Persist manifest {manifest.name}")
                 if not manifest.persist:
                     self.spawner.log.info(f"Un-apply manifest {manifest.name}")
                     self.unapply_manifests(manifest_content=manifest.content)
