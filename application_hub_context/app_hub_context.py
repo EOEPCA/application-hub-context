@@ -566,6 +566,22 @@ class ApplicationHubContext(ABC):
                 plural=plural,
                 body=yaml.safe_load(rendered_manifest)
             )
+        if yaml.safe_load(rendered_manifest)["kind"] in ["Object"]:
+            # see https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/CustomObjectsApi.md#create_namespaced_custom_object
+            # Define the Crossplane Kubernetes Object details
+            group = "kubernetes.crossplane.io" 
+            version = "v1alpha2"          
+            plural = "objects"          
+
+            self.spawner.log.info(f"Creating Crossplane Kubernetes Object {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
+            
+            # Create the Crossplane Kubernetes Object
+            self.custom_objects_api.create_cluster_custom_object(
+                group=group,
+                version=version,
+                plural=plural,
+                body=yaml.safe_load(rendered_manifest)
+            )
         elif yaml.safe_load(rendered_manifest)["kind"] in ["ExternalSecret"]:
             self.spawner.log.info(f"Creating ExternalSecret {yaml.safe_load(rendered_manifest).get('metadata').get('name')} in namespace {self.namespace}")
             # Define the ExternalSecret details
@@ -642,7 +658,15 @@ class ApplicationHubContext(ABC):
                         name=name,
                     )
                     self.spawner.log.info(f"Response: {response}")
-
+                elif kind == "Object":
+                    self.spawner.log.info(f"Deleting Crossplane Kubernetes Object {name}")
+                    response = self.custom_objects_api.delete_cluster_custom_object(
+                        group="kubernetes.crossplane.io",
+                        version="v1alpha2",
+                        plural="objects",
+                        name=name,
+                    )
+                    self.spawner.log.info(f"Response: {response}")
                 elif kind == "ExternalSecret":
                     self.spawner.log.info(f"Deleting ExternalSecret {name} from namespace {self.render(namespace)}")
                     self.custom_objects_api.delete_namespaced_custom_object(
