@@ -62,7 +62,7 @@ class ApplicationHubContext(ABC):
         for key, value in extended_vars.items():
             if isinstance(value, str):
                 # If value is a simple string
-                self.spawner.environment[key] = value
+                self.spawner.environment[key] = self.render(value)
             elif isinstance(value, ConfigMapEnvVarReference):
                 # If value must be retrieved from an existing configmap
                 config_map_name = value.from_config_map.name
