@@ -2,7 +2,8 @@ name: Build, Test, and Deploy Docker Image
 
 on:
   push:
-    branches: [eoepca-beta01]
+    branches: 
+    - develop
 
 jobs:
   build:
