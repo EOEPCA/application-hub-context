@@ -445,24 +445,24 @@ metadata:
 type: Opaque
 data:
   credentials: W2RlZmF1bHRdCmF3c19hY2Nlc3Nfa2V5X2lkPUFTSUFJT1NGT0ROTjdFWEFNUExFCmF3c19zZWNyZXRfYWNjZXNzX2tleT13SmFsclhVdG5GRU1JL0s3TURFTkcvYlB4UmZpQ1lFWEFNUExFS0VZCmF3c19zZXNzaW9uX3Rva2VuPUlRb0piM2pySmdCV05FTE5Hb2xHSkxFT3RTVEFOR1k0TFlPNUk0SzVOUlZFS1pPTkNTTk1HRlNUS1FNSUxXUjJPUzAwRklDRTExSlg=
----
-apiVersion: helm.crossplane.io/v1beta1
-kind: Release
-metadata:
-  name: wordpress-jupyter-{{ spawner.user.name }}
-  namespace: jupyter-{{ spawner.user.name }}
-spec:
-  forProvider:
-    chart:
-      name: wordpress
-      version: "24.1.4"
-      repository: oci://registry-1.docker.io/bitnamicharts/
-    namespace: jupyter-{{ spawner.user.name }}
-    values:
-      service:
-        type: ClusterIP
-  providerConfigRef:
-    name: helm-provider
+# ---
+# apiVersion: helm.crossplane.io/v1beta1
+# kind: Release
+# metadata:
+#   name: wordpress-jupyter-{{ spawner.user.name }}
+#   namespace: jupyter-{{ spawner.user.name }}
+# spec:
+#   forProvider:
+#     chart:
+#       name: wordpress
+#       version: "24.1.4"
+#       repository: oci://registry-1.docker.io/bitnamicharts/
+#     namespace: jupyter-{{ spawner.user.name }}
+#     values:
+#       service:
+#         type: ClusterIP
+#   providerConfigRef:
+#     name: helm-provider
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret

@@ -3,7 +3,7 @@ alias calrissian="/opt/conda/bin/calrissian --pod-nodeselectors /etc/calrissian/
 alias cwltool="/opt/conda/bin/cwltool --podman"
 . /home/jovyan/.bashrc
 
-alias aws="aws --endpoint-url=http://localstack:4566"
+#alias aws="aws --endpoint-url=http://localstack:4566"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -25,3 +25,5 @@ fi
 # <<< conda initialize <<<
 
 a={{spawner.user.name}}
+
+alias aws="aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566"

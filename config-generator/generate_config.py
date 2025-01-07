@@ -37,6 +37,11 @@ dask_gateway_manifest = load_manifests(
     file_path=os.path.join(current_dir, "manifests/dask-gateway.yaml"),
 )
 
+kaniko_manifest = load_manifests(
+    name="kaniko",
+    key="kaniko",
+    file_path=os.path.join(current_dir, "manifests/kaniko.yaml"),
+)
 # volumes
 
 workspace_volume = Volume(
@@ -127,7 +132,7 @@ profile_1 = Profile(
         "DASK_GATEWAY": "http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80",
     },
     init_containers=[init_container],
-    manifests=[localstack_manifest, dask_gateway_manifest],
+    manifests=[localstack_manifest, dask_gateway_manifest, kaniko_manifest],
     env_from_config_maps=["my-config"],
     env_from_secrets=["my-secret", "data-by-name"],
     secret_mounts=[

@@ -1,0 +1,58 @@
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: kaniko-build
+    namespace: jupyter-{{ spawner.user.name }}
+  spec:
+    containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+        - /bin/sh
+        - -c
+        - "sleep infinity"  # Keep the container running for manual access
+      volumeMounts:
+      - name: build-context
+        mountPath: /calrissian  # Mount your build files here
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
+    restartPolicy: Never
+    volumes:
+    - name: build-context
+      persistentVolumeClaim:
+        claimName: calrissian-claim  # Replace with your PVC name
+    - name: kaniko-secret
+      secret:
+        secretName: kaniko-secret
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+ name: pod-exec
+ namespace: jupyter-{{ spawner.user.name }}
+rules:
+ - verbs:
+     - get
+     - list
+     - watch
+   apiGroups:
+     - ''
+   resources:
+     - pods/exec
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+ name: bind-default-to-opd-exec
+ namespace: jupyter-{{ spawner.user.name }}
+subjects:
+ - kind: ServiceAccount
+   name: default
+   namespace: jupyter-{{ spawner.user.name }}
+roleRef:
+ apiGroup: rbac.authorization.k8s.io
+ kind: Role
+ name: pod-exec
