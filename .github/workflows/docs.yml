@@ -23,5 +23,5 @@ jobs:
         with:
           python-version: 3.x
       - run: |
-            pip install mkdocs-material mkdocs-mermaid2-plugin mkdocs-jupyter odc-stac ipykernel cwltool zarr matplotlib
+            pip install mkdocs-material mkdocs-mermaid2-plugin mkdocs-jupyter
             mkdocs gh-deploy --force
