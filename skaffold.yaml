@@ -58,7 +58,11 @@ profiles:
             setFiles:
               configYml: ./files/hub/config.yml
               jupyterConfig: ./files/hub/jupyterhub_config.py
-
+        hooks:
+          before:
+            - host:
+                command: ["sh", "-c", "config-generator/generate-config.sh"]
+                os: [darwin, linux]
     manifests:
       rawYaml:
       - sk-k8s/cluster-role-binding.yaml
