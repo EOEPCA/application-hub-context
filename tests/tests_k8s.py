@@ -45,7 +45,7 @@ class TestK8s(unittest.TestCase):
     def setUpClass(cls):
         os.environ["KUBECONFIG"] = "/home/mambauser/.kube/kubeconfig-t2-dev.yaml"
 
-        cls.app_hub_context = DefaulfApplicationHubContext(
+        cls.app_hub_context = DefaultApplicationHubContext(
             namespace="a_namespace",
             spawner=spawner,
             config_path="tests/data/config.yml",
@@ -54,7 +54,7 @@ class TestK8s(unittest.TestCase):
         )
 
     def test_obj(self):
-        self.assertIs(type(self.app_hub_context), DefaulfApplicationHubContext)
+        self.assertIs(type(self.app_hub_context), DefaultApplicationHubContext)
 
     def test_client(self):
         self.assertIsInstance(self.app_hub_context._get_core_v1_api(), client.CoreV1Api)
