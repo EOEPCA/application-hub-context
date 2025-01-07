@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-script-configmap
+  namespace: jupyter
+data:
+  init.sh: |
+    #!/bin/bash
+    apt update
+    apt install -y jq curl
+
+    token=`curl -X POST -d '{"auth": {"username": "jovyan", "token": "12345"}}' http://application-hub-hub.jupyter.svc.cluster.local:8081/hub/api/users/jovyan/tokens | jq -r '.token'`
+
+    curl --header "Authorization: Bearer $token" http://application-hub-hub.jupyter.svc.cluster.local:8081/hub/api/groups
+
+    # create groups
+    for group in group-a group-b group-c
+    do
+      curl --request POST --location http://application-hub-hub.jupyter.svc.cluster.local:8081/hub/api/groups/${group} --header "Authorization: Bearer $token" --header 'Content-Type: application/json'
+      # add user to group
+      curl --request POST --location http://application-hub-hub.jupyter.svc.cluster.local:8081/hub/api/groups/${group}/users --header "Authorization: Bearer $token" --header 'Content-Type: application/json' --data '{"users": ["jovyan", "alice", "bob"]}'
+    done

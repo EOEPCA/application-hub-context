@@ -1,0 +1,109 @@
+apiVersion: helm.crossplane.io/v1beta1
+kind: Release
+metadata:
+  name: dask-gw-jupyter-{{ spawner.user.name }}
+  namespace: jupyter-{{ spawner.user.name }}
+spec:
+  forProvider:
+    chart:
+      name: dask-gateway
+      version: "2024.1.0"
+      repository: https://helm.dask.org
+    namespace: jupyter-{{ spawner.user.name }}
+    values:
+      gateway:
+        backend:
+          image:
+            name: ghcr.io/fabricebrito/dev-platform-dask-gateway/worker
+            tag: 1.0.0
+        extraConfig:
+          dask_gateway_config.py: |
+            c = get_config()
+            from dask_gateway_server.options import Options, String, Integer, Float
+            c.Backend.cluster_options = Options(
+              Float("worker_cores_limit", default=1, label="Worker Cores Limit"),
+              Float("worker_cores", default=1, label="Worker Cores"),
+              String("worker_memory", default="1 G", label="Worker Memory"),
+              String("image", default="daskgateway/dask-worker:latest", label="Worker Image")
+            )
+      traefik:
+        service:
+          type: "ClusterIP"
+  providerConfigRef:
+    name: helm-provider
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dask-gateway-config
+data:
+  gateway: |
+    gateway:
+      address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80
+
+      cluster:
+        options: 
+          image: "ghcr.io/fabricebrito/dev-platform-dask-gateway/worker:1.0.0"
+          worker_cores: 0.5
+          worker_cores_limit: 1
+          worker_memory: "4 G"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dask-gateway-config-ws
+data:
+  gateway: |
+    gateway:
+      address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80
+
+      cluster:
+        options: 
+          image: "ghcr.io/fabricebrito/dev-platform-dask-gateway/worker:1.0.0"
+          worker_cores: 0.5
+          worker_cores_limit: 1
+          worker_memory: "4 G"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+ name: access-services
+ namespace: jupyter-{{ spawner.user.name }}
+rules:
+ - verbs:
+     - get
+     - list
+     - watch
+   apiGroups:
+     - ''
+   resources:
+     - services
+     - pods/exec
+ - verbs:
+     - get
+     - list
+     - watch
+   apiGroups:
+     - ''
+   resources:
+     - pods
+ - verbs:
+     - create
+   apiGroups:
+     - ''
+   resources:
+     - pods/portforward
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+ name: bind-default-to-services
+ namespace: jupyter-{{ spawner.user.name }}
+subjects:
+ - kind: ServiceAccount
+   name: default
+   namespace: jupyter-{{ spawner.user.name }}
+roleRef:
+ apiGroup: rbac.authorization.k8s.io
+ kind: Role
+ name: access-services

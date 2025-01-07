@@ -1,10 +1,13 @@
 import os
 import time
+import yaml
 from abc import ABC
 from http import HTTPStatus
 from typing import Dict, TextIO
+from jinja2 import Template
 
 from kubernetes import client, config
+from kubernetes.utils import create_from_dict
 from kubernetes.client import Configuration
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
@@ -33,9 +36,10 @@ class ApplicationHubContext(ABC):
         self.api_client = self._get_api_client(self.kubeconfig_file)
         self.core_v1_api = self._get_core_v1_api()
         self.batch_v1_api = self._get_batch_v1_api()
+        self.apps_v1_api = self._get_apps_v1_api()
         self.rbac_authorization_v1_api = self._get_rbac_authorization_v1_api()
+        self.custom_objects_api = self._get_custom_objects_api()
         self.namespace = namespace
-
         self.spawner = spawner
         # get the groups the user belongs to
         self.user_groups = [group.name for group in self.spawner.user.groups]
@@ -46,7 +50,7 @@ class ApplicationHubContext(ABC):
 
         # loads config
         self.config_parser = ConfigParser.read_file(
-            config_path=config_path, user_groups=self.user_groups
+            config_path=config_path, user_groups=self.user_groups, spawner=self.spawner
         )
 
         # update class dict with kwargs
@@ -122,6 +126,12 @@ class ApplicationHubContext(ABC):
     def _get_rbac_authorization_v1_api(self) -> client.RbacAuthorizationApi:
         return client.RbacAuthorizationV1Api(self.api_client)
 
+    def _get_apps_v1_api(self) -> client.AppsV1Api:
+        return client.AppsV1Api(self.api_client)
+    
+    def _get_custom_objects_api(self) -> client.CustomObjectsApi:    
+        return client.CustomObjectsApi(self.api_client)
+
     def is_object_created(self, read_method, **kwargs):
         read_methods = {}
 
@@ -194,6 +204,40 @@ class ApplicationHubContext(ABC):
 
     def dispose(self):
         pass
+
+    def create_namespace(
+        self, labels: dict = None, annotations: dict = None
+    ) -> client.V1Namespace:
+
+        if labels is None:
+            labels = self.spawner.user_namespace_labels
+        else:
+            labels = {**labels, **self.spawner.user_namespace_labels}
+
+        if self.is_namespace_created():
+            self.spawner.log.info(
+                f"namespace {self.namespace} exists, skipping creation"
+            )
+            return self.core_v1_api.read_namespace(name=self.namespace)
+
+        self.spawner.log.info(f"creating namespace {self.namespace}")
+        try:
+            body = client.V1Namespace(
+                metadata=client.V1ObjectMeta(
+                    name=self.namespace, labels=labels, annotations=annotations
+                )  # noqa: E501
+            )
+            response = self.core_v1_api.create_namespace(
+                body=body, async_req=False
+            )  # noqa: E501
+
+            if not self.retry(self.is_namespace_created):
+                raise ApiException(http_resp=response)
+            self.spawner.log.info(f"namespace {self.namespace} created")
+            return response
+        except ApiException as e:
+            self.spawner.log.error(f"namespace {self.namespace} creation failed, {e}\n")
+            raise e
 
     @staticmethod
     def retry(fun, max_tries=10, interval=1, **kwargs):
@@ -390,7 +434,6 @@ class ApplicationHubContext(ABC):
         resources: list[str] = [""],
         api_groups: list[str] = ["*"],
     ):
-
         if self.is_role_created(name=name):
             return self.rbac_authorization_v1_api.read_namespaced_role(
                 name=name, namespace=self.namespace
@@ -424,9 +467,7 @@ class ApplicationHubContext(ABC):
             raise e
 
     def create_image_pull_secret(self, name: str, data):
-
         if self.is_image_pull_secret_created(name=name):
-
             return self.core_v1_api.read_namespaced_secret(
                 namespace=self.namespace, name=name
             )  # noqa: E501
@@ -500,10 +541,167 @@ class ApplicationHubContext(ABC):
         except ApiException as e:
             raise e
 
+    # new function to apply a set of manifests like kubectl apply -f
+    # def apply_manifests(self, manifest_file):
+    def apply_manifest(self, manifest):
+
+        template = Template(yaml.dump(manifest))
+        rendered_manifest = template.render(spawner=self.spawner)
+        
+        self.spawner.log.info(f"Applying manifest name: {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
+
+        if yaml.safe_load(rendered_manifest)["kind"] in ["Release"]:
+            # see https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/CustomObjectsApi.md#create_namespaced_custom_object
+            # Define the Crossplane HelmRelease details
+            group = "helm.crossplane.io" 
+            version = "v1beta1"          
+            plural = "releases"          
+
+            self.spawner.log.info(f"Creating Crossplane HelmRelease {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
+            
+            # Create the Crossplane HelmRelease
+            self.custom_objects_api.create_cluster_custom_object(
+                group=group,
+                version=version,
+                plural=plural,
+                body=yaml.safe_load(rendered_manifest)
+            )
+        if yaml.safe_load(rendered_manifest)["kind"] in ["Object"]:
+            # see https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/CustomObjectsApi.md#create_namespaced_custom_object
+            # Define the Crossplane Kubernetes Object details
+            group = "kubernetes.crossplane.io" 
+            version = "v1alpha2"          
+            plural = "objects"          
+
+            self.spawner.log.info(f"Creating Crossplane Kubernetes Object {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
+            
+            # Create the Crossplane Kubernetes Object
+            self.custom_objects_api.create_cluster_custom_object(
+                group=group,
+                version=version,
+                plural=plural,
+                body=yaml.safe_load(rendered_manifest)
+            )
+        elif yaml.safe_load(rendered_manifest)["kind"] in ["ExternalSecret"]:
+            self.spawner.log.info(f"Creating ExternalSecret {yaml.safe_load(rendered_manifest).get('metadata').get('name')} in namespace {self.namespace}")
+            # Define the ExternalSecret details
+            group = "external-secrets.io"  
+            version = "v1beta1"          
+            namespace = f"jupyter-{self.spawner.user.name}"       
+            plural = "externalsecrets"
+
+            self.custom_objects_api.create_namespaced_custom_object(
+                group=group,
+                version=version,
+                namespace=namespace,
+                plural=plural,
+                body=yaml.safe_load(rendered_manifest)
+            )
+
+        elif yaml.safe_load(rendered_manifest)["kind"] in ["Secret"]:
+
+            self.spawner.log.info(f"Creating Secret {yaml.safe_load(rendered_manifest).get('metadata').get('name')} in namespace {self.namespace}")
+            create_from_dict(
+                k8s_client=self.api_client,
+                data=yaml.safe_load(rendered_manifest),
+                verbose=True,
+                namespace=self.namespace,
+            )
+        else:
+            self.spawner.log.info(f"Creating object of kind {yaml.safe_load(rendered_manifest).get('kind')} name {yaml.safe_load(rendered_manifest).get('metadata').get('name')} in namespace {self.namespace}")
+            create_from_dict(
+                k8s_client=self.api_client,
+                data=yaml.safe_load(rendered_manifest),
+                verbose=True,
+                namespace=self.namespace,
+            )
+
+    def unapply_manifests(self, manifest_content):
+
+        for k8_object in manifest_content:
+            kind = k8_object.get("kind")
+            self.spawner.log.info(
+                f"Deleting {kind} {k8_object.get('metadata', {}).get('name')}"
+            )
+            metadata = k8_object.get("metadata", {})
+            namespace = metadata.get("namespace", self.namespace)
+            name = metadata.get("name")
+
+            if not kind or not name:
+                continue
+
+            try:
+                if kind == "Deployment":
+                    self.apps_v1_api.delete_namespaced_deployment(name, namespace)
+                elif kind == "Service":
+                    self.core_v1_api.delete_namespaced_service(name, namespace)
+                elif kind == "Job":
+                    self.batch_v1_api.delete_namespaced_job(name, namespace)
+                elif kind == "Pod":
+                    self.core_v1_api.delete_namespaced_pod(name, namespace)
+                elif kind == "Role":
+                    self.rbac_authorization_v1_api.delete_namespaced_role(name, namespace)
+                elif kind == "RoleBinding":
+                    self.rbac_authorization_v1_api.delete_namespaced_role_binding(name, namespace)
+                elif kind == "ServiceAccount":
+                    self.core_v1_api.delete_namespaced_service_account(name, namespace)
+                elif kind == "ConfigMap":
+                    self.core_v1_api.delete_namespaced_config_map(name, namespace)    
+                elif kind == "Secret":
+                    self.core_v1_api.delete_namespaced_secret(name, namespace)
+                elif kind == "Release":
+                    self.spawner.log.info(f"Deleting Crossplane HelmRelease {name}")
+                    response = self.custom_objects_api.delete_cluster_custom_object(
+                        group="helm.crossplane.io",
+                        version="v1beta1",
+                        plural="releases",
+                        name=name,
+                    )
+                    self.spawner.log.info(f"Response: {response}")
+                elif kind == "Object":
+                    self.spawner.log.info(f"Deleting Crossplane Kubernetes Object {name}")
+                    response = self.custom_objects_api.delete_cluster_custom_object(
+                        group="kubernetes.crossplane.io",
+                        version="v1alpha2",
+                        plural="objects",
+                        name=name,
+                    )
+                    self.spawner.log.info(f"Response: {response}")
+                elif kind == "ExternalSecret":
+                    self.spawner.log.info(f"Deleting ExternalSecret {name} from namespace {namespace}")
+                    self.custom_objects_api.delete_namespaced_custom_object(
+                        group="external-secrets.io",
+                        version="v1beta1",
+                        namespace=namespace,
+                        plural="externalsecrets",
+                        name=name,
+                    )
+                # Add other kinds as needed
+                else:
+                    self.spawner.log.error(f"Unsupported kind: {kind}")
+            except client.exceptions.ApiException as e:
+                self.spawner.log.error(f"An error occurred: {e}")
+
 
 class DefaultApplicationHubContext(ApplicationHubContext):
+    
+    def __init__(self, namespace, spawner, config_path: str, kubeconfig_file: TextIO = None, skip_namespace_check=False, **kwargs):
+        
+        # skip_namespace_check is a flag to skip the namespace check and creation
+        self.skip_namespace_check = skip_namespace_check
+        
+        # add kwargs as members of the class
+        self.__dict__.update(kwargs)
+
+        super().__init__(namespace, spawner, config_path, kubeconfig_file, **kwargs)
+    
     def get_profile_list(self):
         return self.config_parser.get_profiles()
+
+    # def render(self, manifest):
+    #     # render the manifest using the spawner object
+    #     template = Template(yaml.dump(manifest))
+    #     return yaml.safe_load(template.render(spawner=self.spawner))
 
     def initialise(self):
         # set the spawner timeout to 10 minutes
@@ -572,9 +770,43 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             profile_id=profile_id
         )
         self.set_pod_env_vars(**(config_env_vars or {}))
+        
+        if not self.skip_namespace_check:
+            self.spawner.log.info(f"Checking namespace {self.namespace}")
+            # check the namespace
+            if not self.is_namespace_created():
+                self.spawner.log.info(f"Creating namespace {self.namespace}")
+                self.create_namespace()
+        else:    
+            self.spawner.log.info(f"Skipping namespace check")
 
         # process the config maps
         config_maps = self.config_parser.get_profile_config_maps(profile_id=profile_id)
+
+        # process the manifests
+        manifests = self.config_parser.get_profile_manifests(profile_id=profile_id)
+
+        if manifests:
+            for manifest in manifests:
+                self.spawner.log.info(f"Apply manifest {manifest.name}")
+
+                
+                for k8_object in manifest.content:
+                    try:
+
+                        # Check and log the 'kind' of the Kubernetes object
+                        if 'kind' in k8_object:
+                            self.spawner.log.info(f"Applying manifest of kind: {k8_object['kind']}")
+                            self.apply_manifest(k8_object)  # Apply the manifest
+                        else:
+                            self.spawner.log.warning(f"Manifest does not contain a 'kind': {k8_object}")
+
+                    except Exception as err:
+                        self.spawner.log.error(f"Unexpected {err}, {type(err)}")
+                        self.spawner.log.error(
+                            f"Skipping creation of manifest {manifest.name}"
+                        )
+
 
         if config_maps:
             for config_map in config_maps:
@@ -588,25 +820,34 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             annotations=None,
                             labels=None,
                         )
-                    self.spawner.log.info(f"Mounting configmap {config_map.name}")
-                    self.spawner.volume_mounts.extend(
-                        [
-                            {
-                                "name": config_map.name,
-                                "mountPath": config_map.mount_path,
-                                "subPath": config_map.key,
-                            },
-                        ]
-                    )
+                    if config_map.mount_path is not None:
 
-                    self.spawner.volumes.extend(
-                        [
-                            {
-                                "name": config_map.name,
-                                "configMap": {"name": config_map.key},
-                            }
-                        ]
-                    )
+                        self.spawner.log.info(f"Mounting configmap {config_map.name}")
+                        self.spawner.volume_mounts.extend(
+                            [
+                                {
+                                    "name": config_map.name,
+                                    "mountPath": config_map.mount_path,
+                                    "subPath": config_map.key,
+                                },
+                            ]
+                        )
+                        self.spawner.volumes.extend(
+                            [
+                                {
+                                    "name": config_map.name,
+                                    "configMap": {
+                                        "name": config_map.name,
+                                        "defaultMode": int(config_map.default_mode, 8)
+                                        if config_map.default_mode
+                                        else 0o644,  # noqa: E501
+                                    },
+                                }
+                            ]
+                        )
+                        self.spawner.log.info(
+                            f"Mounted configmap {config_map.name} (key {config_map.key})"  # noqa: E501
+                        )
                 except Exception as err:
                     self.spawner.log.error(f"Unexpected {err=}, {type(err)=}")
                     self.spawner.log.error(
@@ -668,7 +909,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     try:
                         # checking if role binding is already created
                         if not self.is_role_binding_created(name=role_binding.name):
-
                             # checking if role is already created
                             if not self.is_role_created(name=role_binding.role.name):
                                 self.spawner.log.info(
@@ -720,7 +960,9 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             "Skipping creation of image pull secret"
                             f" {image_pull_secret.name}"
                         )
-
+                    self.spawner.log.info(
+                        f"Patch service account with image pull secret {image_pull_secret.name}"
+                    )
                     self.patch_service_account(secret_name=image_pull_secret.name)
 
             # process the init containers
@@ -754,6 +996,73 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                         self.spawner.log.error(
                             f"Skipping creation of init container {init_container.name}"
                         )
+
+            
+            # process the pod env vars from config maps
+            env_from_config_maps = self.config_parser.get_profile_env_from_config_maps(
+                profile_id=profile_id
+            )
+            self.spawner.log.info(f"env_from_config_maps {env_from_config_maps}")
+            if env_from_config_maps:
+                self.spawner.extra_container_config["env_from"] = []
+            
+                for env_from_config_map in env_from_config_maps:
+                    self.spawner.log.info(f"env_from_config_map {env_from_config_map}")
+                    self.spawner.extra_container_config["env_from"].append(
+                            {
+                                "configMapRef": {
+                                    "name": env_from_config_map,
+                                }})
+                self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
+
+            # process the pod env vars from secrets
+            env_from_secrets = self.config_parser.get_profile_env_from_secrets(
+                profile_id=profile_id
+            )
+            self.spawner.log.info(f"env_from_secrets {env_from_secrets}")
+            if env_from_secrets:
+                if self.spawner.extra_container_config["env_from"] is None:
+                    self.spawner.extra_container_config["env_from"] = []
+
+                for env_from_secret in env_from_secrets:
+                    self.spawner.log.info(f"env_from_secret {env_from_secret}")
+                    self.spawner.extra_container_config["env_from"].append(
+                            {
+                                "secretRef": {
+                                    "name": env_from_secret,
+                                }})
+                self.spawner.log.info(f"extra_container_config {self.spawner.extra_container_config}")
+
+
+            secret_mounts = self.config_parser.get_profile_secret_mounts(
+                profile_id=profile_id
+            )
+
+            if secret_mounts:
+                for secret_mount in secret_mounts:
+                    self.spawner.log.info(f"Mounting secret {secret_mount.name}")
+                    self.spawner.volume_mounts.extend(
+                        [
+                            {
+                                "name": secret_mount.name,
+                                "mountPath": secret_mount.mount_path,
+                                "subPath": secret_mount.sub_path,
+                            },
+                        ]
+                    )
+
+                    self.spawner.volumes.extend(
+                        [
+                            {
+                                "name": secret_mount.name,
+                                "secret": {
+                                    "secretName": secret_mount.name,
+                                },
+                            }
+                        ]
+                    )
+
+                self.spawner.log.info(f"Mounted secret {secret_mount.name}")
 
     def dispose(self):
         profile_id = self.config_parser.get_profile_by_slug(slug=self.profile_slug).id
@@ -794,6 +1103,17 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     self.spawner.log.info(f"Dispose role binding {role_binding.name}")
                     self.delete_role_binding(role_binding=role_binding)
 
+        # process the manifests
+        manifests = self.config_parser.get_profile_manifests(profile_id=profile_id)
+
+        if manifests:
+            for manifest in manifests:
+                if manifest.persist:
+                    self.spawner.log.info(f"Persist manifest {manifest.name}")
+                if not manifest.persist:
+                    self.spawner.log.info(f"Un-apply manifest {manifest.name}")
+                    self.unapply_manifests(manifest_content=manifest.content)
+
         # deal with the image pull secrets
         image_pull_secrets = self.config_parser.get_profile_image_pull_secrets(
             profile_id=profile_id
@@ -814,7 +1134,6 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                     )
                     for elem in service_account_body.image_pull_secrets:
                         if elem.name == image_pull_secret.name:
-
                             service_account_body.image_pull_secrets.remove(
                                 {"name": elem.name}
                             )

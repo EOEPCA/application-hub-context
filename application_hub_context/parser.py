@@ -1,5 +1,5 @@
 import yaml
-
+from jinja2 import Template
 from application_hub_context.models import Config
 
 undefined = object()
@@ -12,13 +12,24 @@ class ConfigParser:
         self.user_groups = user_groups
 
     @classmethod
-    def read_file(cls, config_path, user_groups):
+    def read_file(cls, config_path, user_groups, spawner):
         """reads a config file encoded in YAML"""
         with open(config_path, "r") as stream:
             try:
-                config_data = yaml.safe_load(stream)
+                # Read the file as a raw string
+                raw_content = stream.read()
+                
+                # Render the content as a Jinja2 template
+                template = Template(raw_content)
+                rendered_content = template.render(spawner=spawner)
+                
+                # Parse the rendered content as YAML
+                config_data = yaml.safe_load(rendered_content)
+    
             except yaml.YAMLError as exc:
-                print(exc)
+                print(f"YAML Error: {exc}")
+            except Exception as e:
+                print(f"Error: {e}")
 
         return cls(config_data=config_data, user_groups=user_groups)
 
@@ -124,3 +135,31 @@ class ConfigParser:
     def get_profile_init_containers(self, profile_id):
         """returns the image pull secrets"""
         return self.get_profile_by_id(profile_id=profile_id).init_containers
+
+    def get_profile_manifests(self, profile_id):
+        """returns the profile manifests"""
+        try:
+            return self.get_profile_by_id(profile_id=profile_id).manifests
+        except AttributeError:
+            pass
+
+    def get_profile_env_from_config_maps(self, profile_id):
+        """returns the profile env from config maps"""
+        try:
+            return self.get_profile_by_id(profile_id=profile_id).env_from_config_maps
+        except AttributeError:
+            pass
+
+    def get_profile_env_from_secrets(self, profile_id):
+        """returns the profile env from secrets"""
+        try:
+            return self.get_profile_by_id(profile_id=profile_id).env_from_secrets
+        except AttributeError:
+            pass
+        
+    def get_profile_secret_mounts(self, profile_id):
+        """returns the profile secret mounts"""
+        try:
+            return self.get_profile_by_id(profile_id=profile_id).secret_mounts
+        except AttributeError:
+            pass

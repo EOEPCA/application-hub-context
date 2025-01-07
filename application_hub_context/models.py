@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -37,6 +37,13 @@ class Volume(BaseModel):
     persist: bool
 
 
+class Manifest(BaseModel):
+    name: str
+    key: str
+    content: Optional[List[Dict]] = None
+    persist: Optional[bool] = True
+
+
 class ConfigMap(BaseModel):
 
     """
@@ -50,8 +57,8 @@ class ConfigMap(BaseModel):
 
     name: str
     key: str
-    mount_path: str
-    default_mode: Optional[str]
+    mount_path: Optional[str] = None
+    default_mode: Optional[str] = None
     readonly: bool
     content: Optional[str] = None
     persist: Optional[bool] = True
@@ -65,6 +72,10 @@ class KubespawnerOverride(BaseModel):
     image: str
     extra_resource_limits: Optional[dict] = {}
     extra_resource_guarantees: Optional[dict] = {}
+
+
+class InitContainerVolumeMount(VolumeMount):
+    sub_path: str
 
 
 class InitContainer(BaseModel):
@@ -152,6 +163,10 @@ class ImagePullSecret(BaseModel):
     persist: bool = True
     data: Optional[str] = None
 
+class SecretMount(BaseModel):
+    name: str
+    mount_path: str
+    sub_path: Optional[str] = None
 
 class Profile(BaseModel):
     id: str
@@ -165,7 +180,10 @@ class Profile(BaseModel):
     role_bindings: Optional[List[RoleBinding]] = None
     image_pull_secrets: Optional[List[ImagePullSecret]] = None
     init_containers: Optional[List[InitContainer]] = None
-
+    manifests: Optional[List[Manifest]] = None
+    env_from_config_maps: Optional[List[str]] = None
+    env_from_secrets: Optional[List[str]] = None
+    secret_mounts: Optional[List[SecretMount]] = None
 
 class Config(BaseModel):
     profiles: List[Profile]

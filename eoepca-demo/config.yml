@@ -1,0 +1,942 @@
+profiles:
+- config_maps:
+  - content: "alias ll=\"ls -l\"\nalias calrissian=\"/opt/conda/bin/calrissian --pod-nodeselectors\
+      \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
+      \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
+      \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
+      \nalias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
+      \ >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"\
+      $('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0\
+      \ ]; then\n    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\"\
+      \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
+      \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
+      if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
+      \nfi\n# <<< conda initialize <<<\n"
+    default_mode: null
+    key: bash-rc
+    mount_path: /workspace/.bashrc
+    name: bash-rc
+    persist: false
+    readonly: true
+  default_url: null
+  definition:
+    default: false
+    description: null
+    display_name: Code Server Small
+    kubespawner_override:
+      cpu_guarantee: null
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: eoepca/pde-code-server:develop
+      mem_guarantee: null
+      mem_limit: 8G
+    slug: ellip_studio_coder_slug_s
+  groups:
+  - group-a
+  - group-b
+  id: profile_studio_coder1
+  image_pull_secrets: []
+  init_containers: []
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    CONDA_ENVS_PATH: /workspace/.envs
+    HOME: /workspace
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteMany
+    claim_name: calrissian-claim
+    name: calrissian-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /calrissian
+      name: calrissian-volume
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps:
+  - content: "alias ll=\"ls -l\"\nalias calrissian=\"/opt/conda/bin/calrissian --pod-nodeselectors\
+      \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
+      \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
+      \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
+      \nalias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
+      \ >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"\
+      $('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0\
+      \ ]; then\n    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\"\
+      \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
+      \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
+      if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
+      \nfi\n# <<< conda initialize <<<\n"
+    default_mode: null
+    key: bash-rc
+    mount_path: /workspace/.bashrc
+    name: bash-rc
+    persist: false
+    readonly: true
+  default_url: null
+  definition:
+    default: false
+    description: null
+    display_name: Code Server Medium
+    kubespawner_override:
+      cpu_guarantee: null
+      cpu_limit: 4
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: eoepca/pde-code-server:develop
+      mem_guarantee: null
+      mem_limit: 12G
+    slug: ellip_studio_coder_slug_m
+  groups:
+  - group-a
+  - group-b
+  id: profile_studio_coder2
+  image_pull_secrets: []
+  init_containers: []
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    CONDA_ENVS_PATH: /workspace/.envs
+    HOME: /workspace
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteMany
+    claim_name: calrissian-claim
+    name: calrissian-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /calrissian
+      name: calrissian-volume
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps:
+  - content: 'set -x
+
+
+      cd /workspace
+
+
+      git clone ''https://github.com/eoap/mastering-app-package.git''
+
+
+      code-server --install-extension ms-python.python
+
+      code-server --install-extension redhat.vscode-yaml
+
+      code-server --install-extension sbg-rabix.benten-cwl
+
+      code-server --install-extension ms-toolsai.jupyter
+
+
+      ln -s /workspace/.local/share/code-server/extensions /workspace/extensions
+
+
+      exit 0
+
+      '
+    default_mode: '0660'
+    key: init
+    mount_path: /opt/init/.init.sh
+    name: init
+    persist: false
+    readonly: true
+  default_url: null
+  definition:
+    default: false
+    description: This profile is used to demonstrate the use of an init script
+    display_name: Coder demo init script
+    kubespawner_override:
+      cpu_guarantee: 1
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: eoepca/pde-code-server:develop
+      mem_guarantee: 4G
+      mem_limit: 6G
+    slug: eoepca_demo_init_script
+  groups:
+  - group-a
+  - group-b
+  id: profile_demo_init_script
+  image_pull_secrets: []
+  init_containers:
+  - command:
+    - sh
+    - -c
+    - sh /opt/init/.init.sh
+    image: eoepca/pde-code-server:develop
+    name: init-file-on-volume
+    volume_mounts:
+    - mount_path: /workspace
+      name: workspace-volume
+    - mount_path: /opt/init/.init.sh
+      name: init
+      sub_path: init
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    CODE_SERVER_WS: /workspace/mastering-app-package
+    CONDARC: /workspace/.condarc
+    CONDA_ENVS_PATH: /workspace/.envs
+    HOME: /workspace
+    XDG_RUNTIME_DIR: /workspace/.local
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteMany
+    claim_name: calrissian-claim
+    name: calrissian-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /calrissian
+      name: calrissian-volume
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps: []
+  default_url: null
+  definition:
+    default: false
+    description: Jupyter Lab with Python 3.11
+    display_name: Jupyter Lab
+    kubespawner_override:
+      cpu_guarantee: 1
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: jupyter/scipy-notebook
+      mem_guarantee: 4G
+      mem_limit: 6G
+    slug: eoepca_jupyter_lab
+  groups:
+  - group-c
+  id: profile_jupyter_lab
+  image_pull_secrets: []
+  init_containers: []
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    HOME: /workspace
+    XDG_CONFIG_HOME: /workspace/.config
+    XDG_RUNTIME_DIR: /workspace/.local
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps: []
+  default_url: null
+  definition:
+    default: false
+    description: Jupyter Lab with Python 3.11 private image - demoes the use of an
+      image pull secret
+    display_name: Jupyter Lab - profile 2
+    kubespawner_override:
+      cpu_guarantee: 1
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: eoepca/iat-jupyterlab:develop
+      mem_guarantee: 4G
+      mem_limit: 6G
+    slug: eoepca_jupyter_lab_2
+  groups:
+  - group-c
+  id: profile_jupyter_lab_2
+  image_pull_secrets:
+  - data: null
+  - data: ''
+    name: cr-config
+    persist: false
+  init_containers: []
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    HOME: /workspace
+    XDG_CONFIG_HOME: /workspace/.config
+    XDG_RUNTIME_DIR: /workspace/.local
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps:
+  - content: "set -x \n\ncd /workspace\n\ngit clone 'https://github.com/eoap/stac-eoap.git'\n\
+      \ncode-server --install-extension ms-python.python \ncode-server --install-extension\
+      \ redhat.vscode-yaml\ncode-server --install-extension sbg-rabix.benten-cwl\n\
+      code-server --install-extension ms-toolsai.jupyter\n\nln -s /workspace/.local/share/code-server/extensions\
+      \ /workspace/extensions\n\nmkdir -p /workspace/User/\n\necho '{\"workbench.colorTheme\"\
+      : \"Visual Studio Dark\"}' > /workspace/User/settings.json\n\npython -m venv\
+      \ /workspace/.venv\nsource /workspace/.venv/bin/activate\n/workspace/.venv/bin/python\
+      \ -m pip install --no-cache-dir stactools rasterio requests stac-asset click-logging\
+      \ tabulate tqdm pystac-client ipykernel loguru scikit-image rio_stac boto3==1.35.23\n\
+      \n/workspace/.venv/bin/python -m pip install --index-url https://test.pypi.org/simple\
+      \ cwl-wrapper\n\n/workspace/.venv/bin/python -m ipykernel install --user --name\
+      \ stac_env --display-name \"Python (STAC)\"\n\nexport AWS_DEFAULT_REGION=\"\
+      us-east-1\"\nexport AWS_ACCESS_KEY_ID=\"test\"\nexport AWS_SECRET_ACCESS_KEY=\"\
+      test\"\naws s3 mb s3://results --endpoint-url=http://localstack:4566\n\nexit\
+      \ 0"
+    default_mode: null
+    key: init
+    mount_path: /opt/init/.init.sh
+    name: init
+    persist: false
+    readonly: true
+  - content: "alias ll=\"ls -l\"\nalias calrissian=\"/opt/conda/bin/calrissian --pod-nodeselectors\
+      \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
+      \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
+      \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
+      \nalias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
+      \ >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"\
+      $('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0\
+      \ ]; then\n    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\"\
+      \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
+      \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
+      if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
+      \nfi\n# <<< conda initialize <<<\n"
+    default_mode: null
+    key: bash-rc
+    mount_path: /workspace/.bashrc
+    name: bash-rc
+    persist: false
+    readonly: true
+  - content: 'source /workspace/.bashrc
+
+      '
+    default_mode: null
+    key: bash-login
+    mount_path: /workspace/.bash_login
+    name: bash-login
+    persist: false
+    readonly: true
+  default_url: null
+  definition:
+    default: false
+    description: Understand the role of STAC in input/output data manifests in EO
+      data processing workflows
+    display_name: Understanding STAC for input/output data modelling
+    kubespawner_override:
+      cpu_guarantee: 1
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: docker.io/eoepca/pde-code-server@sha256:f57a3d5eabcae667e0db6e84a57b0c07c692c88f0fb5c8f6900ab8d5e38fcd40
+      mem_guarantee: 4G
+      mem_limit: 6G
+    slug: eoepca_coder_slug_stac
+  groups:
+  - group-a
+  - group-b
+  id: profile_studio_coder_stac
+  image_pull_secrets:
+  - data: null
+    name: cr-config
+    persist: false
+  init_containers:
+  - command:
+    - sh
+    - -c
+    - sh /opt/init/.init.sh
+    image: eoepca/pde-code-server:develop
+    name: init-file-on-volume
+    volume_mounts:
+    - mount_path: /workspace
+      name: workspace-volume
+    - mount_path: /opt/init/.init.sh
+      name: init
+      sub_path: init
+  manifests:
+  - content:
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: localstack
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+        name: localstack
+      rules:
+      - apiGroups:
+        - ''
+        resources:
+        - pods
+        verbs:
+        - '*'
+      - apiGroups:
+        - ''
+        resources:
+        - pods/log
+        verbs:
+        - get
+      - apiGroups:
+        - ''
+        resources:
+        - pods/exec
+        verbs:
+        - get
+        - create
+      - apiGroups:
+        - ''
+        resources:
+        - services
+        verbs:
+        - get
+        - list
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: localstack
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: Role
+        name: localstack
+      subjects:
+      - kind: ServiceAccount
+        name: localstack
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: localstack
+      spec:
+        ports:
+        - name: edge
+          port: 4566
+          targetPort: 4566
+        - name: external-service-port-4510
+          port: 4510
+          targetPort: ext-svc-4510
+        - name: external-service-port-4511
+          port: 4511
+          targetPort: ext-svc-4511
+        - name: external-service-port-4512
+          port: 4512
+          targetPort: ext-svc-4512
+        - name: external-service-port-4513
+          port: 4513
+          targetPort: ext-svc-4513
+        - name: external-service-port-4514
+          port: 4514
+          targetPort: ext-svc-4514
+        - name: external-service-port-4515
+          port: 4515
+          targetPort: ext-svc-4515
+        - name: external-service-port-4516
+          port: 4516
+          targetPort: ext-svc-4516
+        - name: external-service-port-4517
+          port: 4517
+          targetPort: ext-svc-4517
+        - name: external-service-port-4518
+          port: 4518
+          targetPort: ext-svc-4518
+        - name: external-service-port-4519
+          port: 4519
+          targetPort: ext-svc-4519
+        - name: external-service-port-4520
+          port: 4520
+          targetPort: ext-svc-4520
+        - name: external-service-port-4521
+          port: 4521
+          targetPort: ext-svc-4521
+        - name: external-service-port-4522
+          port: 4522
+          targetPort: ext-svc-4522
+        - name: external-service-port-4523
+          port: 4523
+          targetPort: ext-svc-4523
+        - name: external-service-port-4524
+          port: 4524
+          targetPort: ext-svc-4524
+        - name: external-service-port-4525
+          port: 4525
+          targetPort: ext-svc-4525
+        - name: external-service-port-4526
+          port: 4526
+          targetPort: ext-svc-4526
+        - name: external-service-port-4527
+          port: 4527
+          targetPort: ext-svc-4527
+        - name: external-service-port-4528
+          port: 4528
+          targetPort: ext-svc-4528
+        - name: external-service-port-4529
+          port: 4529
+          targetPort: ext-svc-4529
+        - name: external-service-port-4530
+          port: 4530
+          targetPort: ext-svc-4530
+        - name: external-service-port-4531
+          port: 4531
+          targetPort: ext-svc-4531
+        - name: external-service-port-4532
+          port: 4532
+          targetPort: ext-svc-4532
+        - name: external-service-port-4533
+          port: 4533
+          targetPort: ext-svc-4533
+        - name: external-service-port-4534
+          port: 4534
+          targetPort: ext-svc-4534
+        - name: external-service-port-4535
+          port: 4535
+          targetPort: ext-svc-4535
+        - name: external-service-port-4536
+          port: 4536
+          targetPort: ext-svc-4536
+        - name: external-service-port-4537
+          port: 4537
+          targetPort: ext-svc-4537
+        - name: external-service-port-4538
+          port: 4538
+          targetPort: ext-svc-4538
+        - name: external-service-port-4539
+          port: 4539
+          targetPort: ext-svc-4539
+        - name: external-service-port-4540
+          port: 4540
+          targetPort: ext-svc-4540
+        - name: external-service-port-4541
+          port: 4541
+          targetPort: ext-svc-4541
+        - name: external-service-port-4542
+          port: 4542
+          targetPort: ext-svc-4542
+        - name: external-service-port-4543
+          port: 4543
+          targetPort: ext-svc-4543
+        - name: external-service-port-4544
+          port: 4544
+          targetPort: ext-svc-4544
+        - name: external-service-port-4545
+          port: 4545
+          targetPort: ext-svc-4545
+        - name: external-service-port-4546
+          port: 4546
+          targetPort: ext-svc-4546
+        - name: external-service-port-4547
+          port: 4547
+          targetPort: ext-svc-4547
+        - name: external-service-port-4548
+          port: 4548
+          targetPort: ext-svc-4548
+        - name: external-service-port-4549
+          port: 4549
+          targetPort: ext-svc-4549
+        - name: external-service-port-4550
+          port: 4550
+          targetPort: ext-svc-4550
+        - name: external-service-port-4551
+          port: 4551
+          targetPort: ext-svc-4551
+        - name: external-service-port-4552
+          port: 4552
+          targetPort: ext-svc-4552
+        - name: external-service-port-4553
+          port: 4553
+          targetPort: ext-svc-4553
+        - name: external-service-port-4554
+          port: 4554
+          targetPort: ext-svc-4554
+        - name: external-service-port-4555
+          port: 4555
+          targetPort: ext-svc-4555
+        - name: external-service-port-4556
+          port: 4556
+          targetPort: ext-svc-4556
+        - name: external-service-port-4557
+          port: 4557
+          targetPort: ext-svc-4557
+        - name: external-service-port-4558
+          port: 4558
+          targetPort: ext-svc-4558
+        - name: external-service-port-4559
+          port: 4559
+          targetPort: ext-svc-4559
+        selector:
+          app.kubernetes.io/instance: localstack
+          app.kubernetes.io/name: localstack
+        type: ClusterIP
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: localstack
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app.kubernetes.io/instance: localstack
+            app.kubernetes.io/name: localstack
+        strategy:
+          type: RollingUpdate
+        template:
+          metadata:
+            labels:
+              app.kubernetes.io/instance: localstack
+              app.kubernetes.io/name: localstack
+          spec:
+            containers:
+            - env:
+              - name: DEBUG
+                value: '0'
+              - name: EXTERNAL_SERVICE_PORTS_START
+                value: '4510'
+              - name: EXTERNAL_SERVICE_PORTS_END
+                value: '4560'
+              - name: LOCALSTACK_K8S_SERVICE_NAME
+                value: localstack
+              - name: LOCALSTACK_K8S_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+              - name: LAMBDA_RUNTIME_EXECUTOR
+                value: docker
+              - name: LAMBDA_K8S_IMAGE_PREFIX
+                value: localstack/lambda-
+              - name: LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT
+                value: '60'
+              - name: OVERRIDE_IN_DOCKER
+                value: '1'
+              image: localstack/localstack:latest
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /_localstack/health
+                  port: edge
+                initialDelaySeconds: 0
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              name: localstack
+              ports:
+              - containerPort: 4566
+                name: edge
+                protocol: TCP
+              - containerPort: 4510
+                name: ext-svc-4510
+                protocol: TCP
+              - containerPort: 4511
+                name: ext-svc-4511
+                protocol: TCP
+              - containerPort: 4512
+                name: ext-svc-4512
+                protocol: TCP
+              - containerPort: 4513
+                name: ext-svc-4513
+                protocol: TCP
+              - containerPort: 4514
+                name: ext-svc-4514
+                protocol: TCP
+              - containerPort: 4515
+                name: ext-svc-4515
+                protocol: TCP
+              - containerPort: 4516
+                name: ext-svc-4516
+                protocol: TCP
+              - containerPort: 4517
+                name: ext-svc-4517
+                protocol: TCP
+              - containerPort: 4518
+                name: ext-svc-4518
+                protocol: TCP
+              - containerPort: 4519
+                name: ext-svc-4519
+                protocol: TCP
+              - containerPort: 4520
+                name: ext-svc-4520
+                protocol: TCP
+              - containerPort: 4521
+                name: ext-svc-4521
+                protocol: TCP
+              - containerPort: 4522
+                name: ext-svc-4522
+                protocol: TCP
+              - containerPort: 4523
+                name: ext-svc-4523
+                protocol: TCP
+              - containerPort: 4524
+                name: ext-svc-4524
+                protocol: TCP
+              - containerPort: 4525
+                name: ext-svc-4525
+                protocol: TCP
+              - containerPort: 4526
+                name: ext-svc-4526
+                protocol: TCP
+              - containerPort: 4527
+                name: ext-svc-4527
+                protocol: TCP
+              - containerPort: 4528
+                name: ext-svc-4528
+                protocol: TCP
+              - containerPort: 4529
+                name: ext-svc-4529
+                protocol: TCP
+              - containerPort: 4530
+                name: ext-svc-4530
+                protocol: TCP
+              - containerPort: 4531
+                name: ext-svc-4531
+                protocol: TCP
+              - containerPort: 4532
+                name: ext-svc-4532
+                protocol: TCP
+              - containerPort: 4533
+                name: ext-svc-4533
+                protocol: TCP
+              - containerPort: 4534
+                name: ext-svc-4534
+                protocol: TCP
+              - containerPort: 4535
+                name: ext-svc-4535
+                protocol: TCP
+              - containerPort: 4536
+                name: ext-svc-4536
+                protocol: TCP
+              - containerPort: 4537
+                name: ext-svc-4537
+                protocol: TCP
+              - containerPort: 4538
+                name: ext-svc-4538
+                protocol: TCP
+              - containerPort: 4539
+                name: ext-svc-4539
+                protocol: TCP
+              - containerPort: 4540
+                name: ext-svc-4540
+                protocol: TCP
+              - containerPort: 4541
+                name: ext-svc-4541
+                protocol: TCP
+              - containerPort: 4542
+                name: ext-svc-4542
+                protocol: TCP
+              - containerPort: 4543
+                name: ext-svc-4543
+                protocol: TCP
+              - containerPort: 4544
+                name: ext-svc-4544
+                protocol: TCP
+              - containerPort: 4545
+                name: ext-svc-4545
+                protocol: TCP
+              - containerPort: 4546
+                name: ext-svc-4546
+                protocol: TCP
+              - containerPort: 4547
+                name: ext-svc-4547
+                protocol: TCP
+              - containerPort: 4548
+                name: ext-svc-4548
+                protocol: TCP
+              - containerPort: 4549
+                name: ext-svc-4549
+                protocol: TCP
+              - containerPort: 4550
+                name: ext-svc-4550
+                protocol: TCP
+              - containerPort: 4551
+                name: ext-svc-4551
+                protocol: TCP
+              - containerPort: 4552
+                name: ext-svc-4552
+                protocol: TCP
+              - containerPort: 4553
+                name: ext-svc-4553
+                protocol: TCP
+              - containerPort: 4554
+                name: ext-svc-4554
+                protocol: TCP
+              - containerPort: 4555
+                name: ext-svc-4555
+                protocol: TCP
+              - containerPort: 4556
+                name: ext-svc-4556
+                protocol: TCP
+              - containerPort: 4557
+                name: ext-svc-4557
+                protocol: TCP
+              - containerPort: 4558
+                name: ext-svc-4558
+                protocol: TCP
+              - containerPort: 4559
+                name: ext-svc-4559
+                protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /_localstack/health
+                  port: edge
+                initialDelaySeconds: 0
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              resources: {}
+              securityContext: {}
+            securityContext: {}
+            serviceAccountName: localstack
+            volumes: []
+    key: manifests
+    name: manifests
+    persist: false
+  node_selector: {}
+  pod_env_vars:
+    AWS_ACCESS_KEY_ID: test
+    AWS_DEFAULT_REGION: us-east-1
+    AWS_SECRET_ACCESS_KEY: test
+    CODE_SERVER_WS: /workspace/stac-eoap
+    CONDARC: /workspace/.condarc
+    CONDA_ENVS_PATH: /workspace/.envs
+    CWLTOOL_OPTIONS: --podman
+    HOME: /workspace
+    XDG_CONFIG_HOME: /workspace/.local
+    XDG_DATA_HOME: /workspace/.local/share/
+    XDG_RUNTIME_DIR: /workspace/.local
+  role_bindings: []
+  volumes:
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume
+- config_maps:
+  - content: "mkdir -p /workspace/.config/autostart\n\n\ncat <<EOF > /workspace/.config/autostart/qgis.desktop\
+      \ \n[Desktop Entry]\nEncoding=UTF-8\nVersion=0.9.4\nType=Application\nName=qgis\n\
+      Comment=qgis\nExec=qgis\nOnlyShowIn=XFCE;\nRunHook=0\nStartupNotify=false\n\
+      Terminal=false\nHidden=false\nEOF"
+    default_mode: null
+    key: init
+    mount_path: /opt/init/.init.sh
+    name: init
+    persist: false
+    readonly: true
+  - content: "alias ll=\"ls -l\"\nalias calrissian=\"/opt/conda/bin/calrissian --pod-nodeselectors\
+      \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
+      \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
+      \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
+      \nalias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
+      \ >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"\
+      $('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0\
+      \ ]; then\n    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\"\
+      \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
+      \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
+      if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
+      \nfi\n# <<< conda initialize <<<\n"
+    default_mode: null
+    key: bash-rc
+    mount_path: /workspace/.bashrc
+    name: bash-rc
+    persist: false
+    readonly: true
+  - content: 'source /workspace/.bashrc
+
+      '
+    default_mode: null
+    key: bash-login
+    mount_path: /workspace/.bash_login
+    name: bash-login
+    persist: false
+    readonly: true
+  default_url: desktop
+  definition:
+    default: false
+    description: Spatial visualization and decision-making tools for everyone
+    display_name: QGIS on a Remote Desktop
+    kubespawner_override:
+      cpu_guarantee: null
+      cpu_limit: 2
+      extra_resource_guarantees: {}
+      extra_resource_limits: {}
+      image: eoepca/iga-remote-desktop-qgis:1.1.2
+      mem_guarantee: null
+      mem_limit: 2G
+    slug: eoepca_desktop_qgis
+  groups:
+  - group-a
+  - group-b
+  id: profile_studio_desktop_qgis
+  image_pull_secrets: []
+  init_containers:
+  - command:
+    - sh
+    - -c
+    - sh /opt/init/.init.sh
+    image: eoepca/pde-code-server:develop
+    name: init-file-on-volume
+    volume_mounts:
+    - mount_path: /workspace
+      name: workspace-volume
+    - mount_path: /opt/init/.init.sh
+      name: init
+      sub_path: init
+  manifests: null
+  node_selector: {}
+  pod_env_vars:
+    AWS_ACCESS_KEY_ID: SCWMRGD5GA0Y68XRKFW8
+    AWS_REGION: fr-par
+    AWS_S3_ENDPOINT: s3.fr-par.scw.cloud
+    AWS_SECRET_ACCESS_KEY: a9a7dc0c-8b0a-47b1-a311-b134b258dbb3
+    AWS_VIRTUAL_HOSTING: 'true'
+    HOME: /workspace
+  role_bindings: null
+  volumes:
+  - access_modes:
+    - ReadWriteOnce
+    claim_name: workspace-claim
+    name: workspace-volume
+    persist: false
+    size: 50Gi
+    storage_class: managed-nfs-storage
+    volume_mount:
+      mount_path: /workspace
+      name: workspace-volume

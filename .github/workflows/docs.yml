@@ -4,7 +4,6 @@ on:
     branches:
       - develop
       - main
-      - secrets
     paths:
       # Only rebuild website when docs have changed
       - 'README.md'
@@ -16,18 +15,13 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout master
+        uses: actions/checkout@v2
 
-      - name: Install Conda environment from environment.yml
-        uses: mamba-org/provision-with-micromamba@main
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
         with:
-            environment-file: docs/environment.yml
-            environment-name: env_zoo_calrissian
-            channels: terradue,eoepca,conda-forge
-            channel-priority: flexible
-
-      - name: Install project
-        run: |
-          /home/runner/micromamba-root/envs/env_zoo_calrissian/bin/python setup.py install
-
-      - run: /home/runner/micromamba-root/envs/env_zoo_calrissian/bin/mkdocs gh-deploy --force
+          python-version: 3.x
+      - run: |
+            pip install mkdocs-material mkdocs-mermaid2-plugin mkdocs-jupyter
+            mkdocs gh-deploy --force
