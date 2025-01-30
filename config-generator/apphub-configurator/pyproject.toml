@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "apphub-configurator"
+dynamic = ["version"]
+description = "apphub-configurator"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+keywords = ["kubernetes", "configuration", "EOEPCA"]
+authors = [
+    { name = "Parham Membari", email = "parham.membari@terradue.com" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = ["pydantic", "pyyaml"]
+
+[project.urls]
+Documentation = "https://github.com/EOEPCA/application-hub-context/config-generator/apphub-configurator/#readme"
+Issues = "https://github.com/EOEPCA/application-hub-context/issues"
+Source = "https://github.com/EOEPCA/application-hub-context/config-generator/apphub-configurator"
+Examples = "https://github.com/EOEPCA/application-hub-context/config-generator/apphub-configurator/examples"
+
+[tool.hatch.version]
+path = "src/apphub_configurator/__about__.py"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build]
+packages = ["src/apphub_configurator"]
+
+[tool.hatch.envs.default]
+dependencies = ["pytest", "pytest-cov"]
+
+# Coverage settings
+[tool.coverage.run]
+source_pkgs = ["apphub_configurator"]
+branch = true
+parallel = true
+omit = [
+    "src/apphub_configurator/__about__.py",
+]
+
+[tool.coverage.paths]
+apphub_configurator = ["src/apphub_configurator", "*/apphub_configurator/src/apphub_configurator"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "no cov",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
