@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [Installation](#installation)
+- [Overview](#overview)
 - [License](#license)
 
 ## Installation
@@ -15,6 +16,8 @@
 ```console
 pip install apphub-configurator
 ```
+## Overview
+This package contains a notebook and the python modules to support the generation of ApplicationHub configurations for a minikube cluster. For more information about ApplicationHub please check this [link](https://github.com/EOEPCA/application-hub-context)
 
 ## License
 
