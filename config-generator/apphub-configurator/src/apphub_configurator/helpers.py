@@ -32,7 +32,6 @@ def load_manifests(name, key, file_path):
 
 
 def create_init_container(image: str, volume: Volume, mount_path: str) -> InitContainer:
-
     init_context_volume_mount = InitContainerVolumeMount(
         mount_path="/opt/init/.init.sh", name="init", sub_path="init"
     )
