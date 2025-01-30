@@ -1,6 +1,6 @@
 import yaml
 
-from models import (
+from src.apphub_configurator.models import (
     Volume,
     InitContainer,
     VolumeMount,
