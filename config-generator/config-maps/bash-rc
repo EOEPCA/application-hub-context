@@ -27,3 +27,5 @@ fi
 a={{spawner.user.name}}
 
 alias aws="aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566"
+
+export PATH=/workspace/.local/bin:$PATH
