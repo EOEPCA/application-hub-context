@@ -21,13 +21,13 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
-dependencies = ["pydantic", "pyyaml"]
+dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/EOEPCA/application-hub-context/tree/ESAEOEPCA-236/config-generator/apphub-configurator#readme"
+Documentation = "https://github.com/EOEPCA/application-hub-context/config-generator/apphub-configurator#readme"
 Issues = "https://github.com/EOEPCA/application-hub-context/issues"
-Source = "https://github.com/EOEPCA/application-hub-context/tree/ESAEOEPCA-236/config-generator/apphub-configurator"
-Examples = "https://github.com/EOEPCA/application-hub-context/tree/ESAEOEPCA-236/config-generator/apphub-configurator/examples"
+Source = "https://github.com/EOEPCA/application-hub-context/config-generator/apphub-configurator"
+Examples = "https://github.com/EOEPCA/application-hub-context/config-generator/examples"
 
 [tool.hatch.version]
 path = "src/apphub_configurator/__about__.py"
@@ -37,9 +37,22 @@ allow-direct-references = true
 
 [tool.hatch.build]
 packages = ["src/apphub_configurator"]
+examples = ["examples"]
+
 
 [tool.hatch.envs.default]
-dependencies = ["pytest", "pytest-cov"]
+path = "/code/hatch/envs/apphub_configurator"
+[tool.hatch.envs.prod]
+path = "/code/hatch/envs/apphub_configurator"
+dependencies = ["pytest",
+                "pytest-cov",
+                "pydantic", 
+                "pyyaml", 
+                "ipykernel", 
+                "jupyter"]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.10", "3.11", "3.12"]
 
 # Coverage settings
 [tool.coverage.run]

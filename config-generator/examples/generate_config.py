@@ -1,4 +1,4 @@
-from models import *
+from src.apphub_configurator.models import *
 import yaml
 import os
 from loguru import logger
