@@ -20,8 +20,9 @@ image = "eoepca/pde-code-server:develop"
 node_selector = {}
 
 # get the current directory
-current_dir = os.path.dirname(os.path.realpath(__file__))
-parent_dir = current_dir.replace("/examples","")
+current_dir = Path(os.path.dirname(os.path.realpath(__file__)))
+parent_dir = current_dir.parent
+
 # load the manifests
 localstack_manifest_path = os.path.join(parent_dir, "manifests/manifest.yaml") 
 # localstack_manifest
