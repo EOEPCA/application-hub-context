@@ -20,10 +20,11 @@
 - [License](#license)
 
 ## Installation
-Create a hatch environment with the dependencies listed in the file `pyproject.toml` and open the notebook [config-generator.ipynb](examples/config-generator.ipynb)
+Create a hatch environment with the dependencies listed in the file `pyproject.toml`. 
 
 ```console
-pip install apphub-configurator
+hatch shell prod
+hatch -e prod run python -m ipykernel install --user --name=apphub_configurator --display-name "apphub_configurator"
 ```
 ## Overview
 This package contains a notebook and the python modules to support the generation of ApplicationHub configurations for a minikube cluster. For more information about ApplicationHub please check this [link](https://github.com/EOEPCA/application-hub-context)
