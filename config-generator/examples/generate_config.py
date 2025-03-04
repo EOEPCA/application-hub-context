@@ -21,9 +21,9 @@ node_selector = {}
 
 # get the current directory
 current_dir = os.path.dirname(os.path.realpath(__file__))
-
+parent_dir = current_dir.replace("/examples","")
 # load the manifests
-localstack_manifest_path = os.path.join(current_dir.replace("/examples",""), "manifests/manifest.yaml") 
+localstack_manifest_path = os.path.join(parent_dir, "manifests/manifest.yaml") 
 # localstack_manifest
 localstack_manifest = load_manifests(
     name="localstack",
@@ -31,14 +31,14 @@ localstack_manifest = load_manifests(
     file_path=localstack_manifest_path,
 )
 
-dask_gateway_manifest_path = os.path.join(current_dir.replace("/examples",""), "manifests/dask-gateway.yaml") 
+dask_gateway_manifest_path = os.path.join(parent_dir, "manifests/dask-gateway.yaml") 
 # Dask Gateway manifest
 dask_gateway_manifest = load_manifests(
     name="dask-gateway",
     key="dask-gateway",
     file_path=dask_gateway_manifest_path,
 )
-kaniko_manifest_path = os.path.join(current_dir.replace("/examples",""), "manifests/kaniko.yaml") 
+kaniko_manifest_path = os.path.join(parent_dir, "manifests/kaniko.yaml") 
 kaniko_manifest = load_manifests(
     name="kaniko",
     key="kaniko",
@@ -66,7 +66,7 @@ calrissian_volume = Volume(
     persist=False,
 )
 
-bash_login_file_path = os.path.join(current_dir.replace("/examples",""), "config-maps/bash-login") 
+bash_login_file_path = os.path.join(parent_dir, "config-maps/bash-login") 
 bash_login_cm = load_config_map(
     name="bash-login",
     key="bash-login",
@@ -74,14 +74,14 @@ bash_login_cm = load_config_map(
     mount_path="/etc/profile.d/bash-login.sh",
 )
 
-bash_rc_cm_file_path = os.path.join(current_dir.replace("/examples",""), "config-maps/bash-rc") 
+bash_rc_cm_file_path = os.path.join(parent_dir, "config-maps/bash-rc") 
 bash_rc_cm = load_config_map(
     name="bash-rc",
     key="bash-rc",
     file_name=bash_rc_cm_file_path,
     mount_path="/workspace/.bashrc",
 )
-init_cm_file_path = os.path.join(current_dir.replace("/examples",""), "config-maps/init.sh") 
+init_cm_file_path = os.path.join(parent_dir, "config-maps/init.sh") 
 init_cm = load_init_script(init_cm_file_path)
 
 init_container = create_init_container(
