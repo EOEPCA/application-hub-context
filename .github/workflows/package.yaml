@@ -2,7 +2,7 @@ name: Publish to PyPI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "ESAEOEPCA-236" ]
   release:
     types: [published]
   pull_request:
