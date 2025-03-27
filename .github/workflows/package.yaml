@@ -6,7 +6,7 @@ on:
   release:
     types: [published]
   pull_request:
-    branches: [develop, main, ESAEOEPCA-236]
+    branches: [develop, main]
     
 permissions:
   contents: read
@@ -38,7 +38,16 @@ jobs:
       with:
         repository-url: https://upload.pypi.org/legacy/
     - name: Publish package distributions to PyPI (develop)
-      if: github.ref == 'refs/heads/develop'
+      if: github.ref == 'refs/heads/develop' 
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
+        
+    - name: Publish package distributions to PyPI (ESAEOEPCA-236)
+      if: github.ref == 'refs/heads/ESAEOEPCA-236' 
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+
+
+        
