@@ -15,8 +15,8 @@ An Application pod runs in a dedicated namespace that may have configurations su
 The Application pod contextualization targets providing:
 
 - **runtime environment variables**
-- **runtime configuration files such as S3 configuration files or docker config files**
-- **volumes mounted such as the workspace volume**
+- **runtime configuration files, such as S3 configuration files or docker config files**
+- **volumes mounted, such as the workspace volume**
 - **Multi-User/Profile**
 
 The Application pod contextualization takes as input a 'profile' and is handled by the kube spawner providing:
@@ -98,10 +98,34 @@ Below an example of configuration in the ApplicationHub:
   node_selector: 
     k8s.provider.com/pool-name: node-pool-a
 ```
+Breakdown:
 
-In the application Dockerfile, after having pre-installed with pip install jhsingle-native-proxy>=0.0.9, the execution entrypoint in the Dockerfile is typically: 
+- id: the profile identifier of your app 
+- groups: the group list containing the users that can use the declared app 
+- definition: display name, reference slug identifying the app, cpu/ram requirements alloted for it, reference docker image for the app-level
+- default_url: default uri where to find the app 
+- node_selector: identifies on which node pool the app is executed 
+
+To have a compliant candidate app to be added to the AppHub, it must comply with the proper Dockerfile definition before adding this into the configuration.
+In addition it must be pushed on a registry accessible from the AppHub deployment, e.g. eoepca/iga-remote-desktop_qgis in the example just above. 
+Typically the Dockerfile starts with eoepca/iga-remote-desktop base image and then the specific app-level dependencies are added 
+
+```
+FROM eoepca/iga-remote-desktop:1.1.2
+USER root
+
+#Install your app with dependencies and add to PATH
+
+RUN chown -R $NB_UID:$NB_GID $HOME
+USER $NB_USER
+```
+
+
+In the Dockerfile, after having pre-installed with pip install jhsingle-native-proxy>=0.0.9, the execution entrypoint in the Dockerfile is typically: 
 
 CMD ["jhsingle-native-proxy", "--destport", "<your-dest-port>", "<your-app-cli>", "<your-app-param>", "{--}server.port", "{port}", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "<your-port>"]
+
+E.g.
 
 CMD ["jhsingle-native-proxy", "--destport", "8505", "streamlit", "hello", "{--}server.port", "8888", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "8888"]
 
@@ -114,7 +138,7 @@ Params breakdown:
 
 --port $port: This sets the PROXY server's external port number to $port.
 
-The {--} syntax is used to pass arguments to the Streamlit command.
+The {--} syntax is used to pass arguments to the app, e.g. Streamlit, command itself:
 {--}server.port {port}: server.port {port} sets the port number on which the Streamlit SERVER will run. Equivalently {--}bind-addr 0.0.0.0:$port
 
 {--}server.headless: True ensures that Streamlit runs in headless mode, meaning it does not require a graphical user interface (GUI).
@@ -127,14 +151,10 @@ Generalised command:
 jhsingle-native-proxy --destport $destport --authtype none <your-cli-command> <your-cli-params> {--}server.port {port} {--}server.headless True {--}server.enableCORS False --port $port
 ```
 
-In addition to the usual jhsingle-native-proxy params list, an application, e.g. PDE Code Server, can leverage a user data path mapping and its VS code loading, e.g. 
+In addition to the usual jhsingle-native-proxy params list, an application, e.g. as PDE Code Server, can leverage a user data path mapping and its VS code loading, e.g. with {--}user-data-dir and CODE_SERVER_WS:  
 
 ```
 CODE_SERVER_WS="/workspace"
 jhsingle-native-proxy --port 8888 --destport $destport code-server {--}auth none {--}bind-addr 0.0.0.0:$destport {--}user-data-dir /workspace $CODE_SERVER_WS
 ```
-
-[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
-
-
 
