@@ -74,13 +74,10 @@ Below an example of configuration in the ApplicationHub:
     k8s.provider.com/pool-name: node-pool-a
 ```
 
-
-# QGIS via Remote Desktop
-This interactive application provides a remote desktop with QGIS via JupyterHub.
-It relies on the [jupyter-remote-desktop-proxy](https://github.com/jupyterhub/jupyter-remote-desktop-proxy)
-
 ## ApplicationHubConfiguration
-Below an example of configuration in the ApplicationHub:
+Below an example of configuration in the ApplicationHub
+This interactive application provides a remote desktop with QGIS via JupyterHub.
+It relies on the [jupyter-remote-desktop-proxy](https://github.com/jupyterhub/jupyter-remote-desktop-proxy) and [app-repo](https://github.com/EOEPCA/iga-remote-desktop-qgis/) 
 
 ```yaml
 - id: profile_iga_remote_desktop_qgis
@@ -101,17 +98,26 @@ Below an example of configuration in the ApplicationHub:
 Breakdown:
 
 - id: the profile identifier of your app 
-- groups: the group list containing the users that can use the declared app 
+- groups: the group list containing the users groups that can use the declared app 
 - definition: display name, reference slug identifying the app, cpu/ram requirements alloted for it, reference docker image for the app-level
 - default_url: default uri where to find the app 
 - node_selector: identifies on which node pool the app is executed 
 
-To have a compliant candidate app to be added to the AppHub, it must comply with the proper Dockerfile definition before adding this into the configuration.
-In addition it must be pushed on a registry accessible from the AppHub deployment, e.g. eoepca/iga-remote-desktop_qgis in the example just above. 
+To have a compliant candidate app to be added to the AppHub, it must comply with the proper Dockerfile definition before reference its produced docker image into the configuration.
+In addition it must be pushed on a registry accessible from the AppHub deployment.
+These images expose a service on a given port.
+There are two options to have JupyterHub to proxy these applications: 
+- jupyter-server-proxy 
+- jhsingle-native-proxy
+
+# jupyter-server-proxy approach
+The jupyter-server-proxy exposes the application alongside with the JupyterLab instance whilst jhsingle-native-proxy proxies the application without a running JupyterLab instance.
+
+In example the eoepca/iga-remote-desktop_qgis uses the approach with jupyter-server-proxy.
 Typically the Dockerfile starts with eoepca/iga-remote-desktop base image and then the specific app-level dependencies are added 
 
 ```
-FROM eoepca/iga-remote-desktop:1.1.2
+FROM eoepca/iga-remote-desktop
 USER root
 
 #Install your app with dependencies and add to PATH
@@ -120,14 +126,32 @@ RUN chown -R $NB_UID:$NB_GID $HOME
 USER $NB_USER
 ```
 
+# jhsingle-native-proxy approach
+The jhsingle-native-proxy approach instead is based on a Dockerfile following this flow:
 
-In the Dockerfile, after having pre-installed with pip install jhsingle-native-proxy>=0.0.9, the execution entrypoint in the Dockerfile is typically: 
+```
+FROM python
+RUN pip3 install \
+    jhsingle-native-proxy>=0.0.9 \
+    <your-other-pip-dependencies>
 
-CMD ["jhsingle-native-proxy", "--destport", "<your-dest-port>", "<your-app-cli>", "<your-app-param>", "{--}server.port", "{port}", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "<your-port>"]
+# create a user, since we don't want to run as root
+RUN useradd -m jovyan
+ENV HOME=/home/jovyan
+WORKDIR $HOME
+USER jovyan
+
+EXPOSE 8888
+CMD ["jhsingle-native-proxy", "--destport", "8505", "streamlit", "hello", "{--}server.port", "{port}", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "8888"]
+```
+
+So after having pip installed the jhsingle-native-proxy, the execution entrypoint in the Dockerfile is typically: 
+
+CMD ["jhsingle-native-proxy", "--destport", "<your-dest-port>", "<your-app-cli>", "<your-app-params>", "{--}server.port", "{port}", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "<your-port>"]
 
 E.g.
 
-CMD ["jhsingle-native-proxy", "--destport", "8505", "streamlit", "hello", "{--}server.port", "8888", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "8888"]
+CMD ["jhsingle-native-proxy", "--destport",      "8505",         "streamlit",         "hello",         "{--}server.port", "8888", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "8888"]
 
 
 Params breakdown:
@@ -146,12 +170,7 @@ The {--} syntax is used to pass arguments to the app, e.g. Streamlit, command it
 {--}server.enableCORS: False disables Cross-Origin Resource Sharing (CORS), which is useful when running behind a proxy.
 
 
-Generalised command: 
-```
-jhsingle-native-proxy --destport $destport --authtype none <your-cli-command> <your-cli-params> {--}server.port {port} {--}server.headless True {--}server.enableCORS False --port $port
-```
-
-In addition to the usual jhsingle-native-proxy params list, an application, e.g. as PDE Code Server, can leverage a user data path mapping and its VS code loading, e.g. with {--}user-data-dir and CODE_SERVER_WS:  
+In addition to the usual jhsingle-native-proxy params list an could require an user data path mapping and its VS code loading, e.g. with {--}user-data-dir & CODE_SERVER_WS:  
 
 ```
 CODE_SERVER_WS="/workspace"
