@@ -38,16 +38,9 @@ jobs:
       with:
         repository-url: https://upload.pypi.org/legacy/
     - name: Publish package distributions to PyPI (develop)
-      if: github.ref == 'refs/heads/develop' 
+      if: github.ref != 'refs/heads/main' 
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
-        
-    - name: Publish package distributions to PyPI (ESAEOEPCA-236)
-      if: github.ref == 'refs/heads/ESAEOEPCA-236' 
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        repository-url: https://test.pypi.org/legacy/
-
 
         
