@@ -24,39 +24,10 @@ The Application pod contextualization takes as input a 'profile' and is handled 
 - **authentication/authorization**
 - **pre-spawn and post-stop hooks**
 
-# SNAP via Remote Desktop
 
-This interactive application provides a remote desktop with SNAP via JupyterHub.
-It relies on the [jupyter-remote-desktop-proxy](https://github.com/jupyterhub/jupyter-remote-desktop-proxy)
+# ApplicationHubConfiguration
 
-## ApplicationHubConfiguration
-
-Below an example of configuration in the ApplicationHub:
-
-```yaml
-- id: profile_iga_remote_desktop_snap
-  groups: 
-  - group-1
-  definition:
-    display_name: SNAP
-    slug: iga_remote_desktop_snap
-    default: False
-    kubespawner_override:
-      cpu_limit: 1
-      mem_limit: 4G
-      image:  eoepca/iga-remote-desktop_snap
-  default_url: "desktop"
-  node_selector: 
-    k8s.provider.com/pool-name: node-pool-a
-```
-
-# Remote desktop
-This interactive application provides a remote desktop via JupyterHub.
-It relies on the [jupyter-remote-desktop-proxy](https://github.com/jupyterhub/jupyter-remote-desktop-proxy)
-
-## ApplicationHubConfiguration
-Below an example of configuration in the ApplicationHub:
-
+Below an example of [configuration](https://github.com/EOEPCA/helm-charts-dev/blob/develop/charts/application-hub/files/hub/config.yml) section in the ApplicationHub: 
 ```yaml
 - id: profile_iga_remote_desktop
   groups: 
@@ -74,27 +45,6 @@ Below an example of configuration in the ApplicationHub:
     k8s.provider.com/pool-name: node-pool-a
 ```
 
-## ApplicationHubConfiguration
-Below an example of configuration in the ApplicationHub
-This interactive application provides a remote desktop with QGIS via JupyterHub.
-It relies on the [jupyter-remote-desktop-proxy](https://github.com/jupyterhub/jupyter-remote-desktop-proxy) and [app-repo](https://github.com/EOEPCA/iga-remote-desktop-qgis/) 
-
-```yaml
-- id: profile_iga_remote_desktop_qgis
-  groups: 
-  - group-1
-  definition:
-    display_name: QGIS
-    slug: iga_remote_desktop_qgis
-    default: False
-    kubespawner_override:
-      cpu_limit: 1
-      mem_limit: 4G
-      image:  eoepca/iga-remote-desktop_qgis
-  default_url: "desktop"
-  node_selector: 
-    k8s.provider.com/pool-name: node-pool-a
-```
 Breakdown:
 
 - id: the profile identifier of your app 
@@ -110,10 +60,12 @@ There are two options to have JupyterHub to proxy these applications:
 - jupyter-server-proxy 
 - jhsingle-native-proxy
 
-# jupyter-server-proxy approach
+## jupyter-server-proxy approach
 The jupyter-server-proxy exposes the application alongside with the JupyterLab instance whilst jhsingle-native-proxy proxies the application without a running JupyterLab instance.
 
 In example the eoepca/iga-remote-desktop_qgis uses the approach with jupyter-server-proxy.
+It relies on the [jupyter-remote-desktop-proxy](https://github.com/jupyterhub/jupyter-remote-desktop-proxy) and [app-repo](https://github.com/EOEPCA/iga-remote-desktop-qgis/) 
+ 
 Typically the Dockerfile starts with eoepca/iga-remote-desktop base image and then the specific app-level dependencies are added 
 
 ```
@@ -126,7 +78,7 @@ RUN chown -R $NB_UID:$NB_GID $HOME
 USER $NB_USER
 ```
 
-# jhsingle-native-proxy approach
+## jhsingle-native-proxy approach
 The jhsingle-native-proxy approach instead is based on a Dockerfile following this flow:
 
 ```
@@ -145,14 +97,19 @@ EXPOSE 8888
 CMD ["jhsingle-native-proxy", "--destport", "8505", "streamlit", "hello", "{--}server.port", "{port}", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "8888"]
 ```
 
+It relies on the [jhsingle-native-proxy](https://github.com/ideonate/jhsingle-native-proxy) and [app-repo](https://github.com/EOEPCA/iga-streamlit-demo) 
+
 So after having pip installed the jhsingle-native-proxy, the execution entrypoint in the Dockerfile is typically: 
 
+```
 CMD ["jhsingle-native-proxy", "--destport", "<your-dest-port>", "<your-app-cli>", "<your-app-params>", "{--}server.port", "{port}", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "<your-port>"]
+```
 
 E.g.
 
+```
 CMD ["jhsingle-native-proxy", "--destport",      "8505",         "streamlit",         "hello",         "{--}server.port", "8888", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "8888"]
-
+```
 
 Params breakdown:
 
