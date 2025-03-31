@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 license = "Apache-2.0"
 keywords = ["kubernetes", "configuration", "EOEPCA"]
 authors = [
-    { name = "Parham Membari", email = "parham.membari@terradue.com" }
+    { name = "Terradue", email = "info@terradue.com" }
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
