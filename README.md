@@ -55,7 +55,7 @@ Breakdown:
 
 To have a compliant candidate app to be added to the AppHub, it must comply with the proper Dockerfile definition before reference its produced docker image into the configuration.
 In addition it must be pushed on a registry accessible from the AppHub deployment.
-These images expose a service on a given port.
+These images must expose a service on a given port.
 There are two options to have JupyterHub to proxy these applications: 
 - jupyter-server-proxy 
 - jhsingle-native-proxy
@@ -133,4 +133,27 @@ In addition to the usual jhsingle-native-proxy params list an could require an u
 CODE_SERVER_WS="/workspace"
 jhsingle-native-proxy --port 8888 --destport $destport code-server {--}auth none {--}bind-addr 0.0.0.0:$destport {--}user-data-dir /workspace $CODE_SERVER_WS
 ```
+
+
+## Private app images pulling 
+The [docker-config](https://github.com/EOEPCA/helm-charts-dev/blob/f9c77a1e850c8e061de8b113ddcdcfd367b7fc0e/charts/application-hub/files/hub/config.yml#L198) configmap contains container registry authorization definitions. 
+It is a config map mounted on the pod.
+This file enables the pulling of the app images from container registries. 
+
+Example:
+```
+{
+	"auths": {
+		"my-private-registry.com": {
+			"auth": "am…g1Ml4="
+		},
+		"docker-co.domain.com": {
+			"auth": "Zm…Q=="
+		}
+      }
+}
+```
+
+In this example my-private-registry.com and docker-co.domain.com are added together with their credentials to let the apphub deployment pull some of their images as propedeutic action before the app exposure.  
+
 
