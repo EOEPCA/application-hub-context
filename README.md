@@ -27,7 +27,30 @@ The Application pod contextualization takes as input a 'profile' and is handled 
 
 # ApplicationHubConfiguration
 
-Below an example of [configuration](https://github.com/EOEPCA/helm-charts-dev/blob/develop/charts/application-hub/files/hub/config.yml) section in the ApplicationHub: 
+The [config-generator](./config-generator/) folder contains the hatch module for the jupyter notebook to support the generation of ApplicationHub configurations and its documentation is in the dedicated readme. 
+An example of its output is [config.yml](./files/hub/config.yml)
+The definition of the application in the config.yml is addressed according to this pattern:
+
+```yaml
+- id: <profile-id>
+  groups: 
+  - <group-id-1>
+  - <group-id-N>
+  definition:
+    display_name: <display-name>
+    slug: <reference-slug>
+    default: <True/False>
+    kubespawner_override:
+      cpu_limit: <Cpu-limit-as-number>
+      mem_limit: <ram-limit-as-G>
+      image:  <app-docker-image-registry-path>
+  default_url: <default-url>
+  node_selector: 
+    k8s.provider.com/pool-name: <node-selector>
+```
+
+E.g. 
+
 ```yaml
 - id: profile_iga_remote_desktop
   groups: 
