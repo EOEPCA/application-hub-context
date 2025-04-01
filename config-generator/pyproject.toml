@@ -41,9 +41,9 @@ examples = ["examples"]
 
 
 [tool.hatch.envs.default]
-path = "/code/hatch/envs/apphub_configurator"
+path = "hatch/envs/apphub_configurator"
 [tool.hatch.envs.prod]
-path = "/code/hatch/envs/apphub_configurator"
+path = "hatch/envs/apphub_configurator"
 dependencies = ["pytest",
                 "pytest-cov",
                 "pydantic", 
