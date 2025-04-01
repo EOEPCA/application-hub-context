@@ -116,8 +116,8 @@ ENV HOME=/home/jovyan
 WORKDIR $HOME
 USER jovyan
 
-EXPOSE 8888
-CMD ["jhsingle-native-proxy", "--destport", "8505", "streamlit", "hello", "{--}server.port", "{port}", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "8888"]
+EXPOSE <server-port>
+CMD ["jhsingle-native-proxy", "--destport", "<your-dest-port>", "<your-app-cli>", "<your-app-params>", "{--}server.port", "{port}", "{--}server.headless", "True", "{--}server.enableCORS", "False", "--port", "<your-port>"]
 ```
 
 It relies on the [jhsingle-native-proxy](https://github.com/ideonate/jhsingle-native-proxy) and [app-repo](https://github.com/EOEPCA/iga-streamlit-demo) 
@@ -163,7 +163,21 @@ The [docker-config](https://github.com/EOEPCA/helm-charts-dev/blob/f9c77a1e850c8
 It is a config map mounted on the pod.
 This file enables the pulling of the app images from container registries. 
 
+```
+{
+	"auths": {
+		"my-registry-1.com": {
+			"auth": "<base64encoded-docker-config-1>"
+		},
+		"my-registry-1.com": {
+			"auth": "<base64encoded-docker-config-2>"
+		}
+      }
+}
+```
+
 Example:
+
 ```
 {
 	"auths": {
@@ -177,6 +191,6 @@ Example:
 }
 ```
 
-In this example my-private-registry.com and docker-co.domain.com are added together with their credentials to let the apphub deployment pull some of their images as propedeutic action before the app exposure.  
+In this example my-private-registry.com and docker-co.domain.com are added together with their credentials to let the AppHub deployment pull some of their images as propedeutic action before the app exposure.  
 
 
