@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: AppConfigurator Publish to PyPI
 
 on:
   push:
@@ -30,8 +30,14 @@ jobs:
         # python -m pip install --upgrade pip
         pip install hatch
     - name: Build package
-      run: hatch build config-generator/apphub-configurator/
-
+      run: | 
+        rm -rf application_hub_context
+        cd config-generator/apphub-configurator/
+        hatch build 
+        ls -la
+        mv dist/ ../../
+        cd - 
+        ls -la
     - name: Publish package distributions to PyPI (main)
       if: github.ref == 'refs/heads/main'
       uses: pypa/gh-action-pypi-publish@release/v1
