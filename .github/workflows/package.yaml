@@ -1,4 +1,4 @@
-name: AppConfigurator Publish to PyPI
+name: AppConfigurator Publish to PyPI 
 
 on:
   push:
