@@ -1,8 +1,8 @@
-from models import *
+from apphub_configurator.models import *
 import yaml
 import os
 from loguru import logger
-from helpers import (
+from apphub_configurator.helpers import (
     load_config_map,
     load_manifests,
     create_init_container,
