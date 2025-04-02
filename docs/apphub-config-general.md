@@ -19,43 +19,231 @@ The definition of an application in the config.yml is addressed according to thi
   default_url: <default-url>
   node_selector: 
     k8s.provider.com/pool-name: <node-selector>
-```
+  config_maps:
+  - name: <config-map-name>
+    key: <config-map-key>
+    mount_path: <config-map-destination-mountpath>
+    default_mode: <config-map-destination-access-mode>
+    readonly: <if-read-only>
+  pod_env_vars:
+    mykey1: "myvalue1"
+    mykey2: "myvalue2"
+    mykey3:
+      from_config_map:
+        name: mykeyname
+        key: mykey3
+  - name: my-inlined-file-name
+    key: my-inlined-file-key
+    content: |-
+        #inline-content
+    mount_path: my-inlined-file-path
+    default_mode: my-inlined-access-mode
+    readonly: my-inlined-file-read-mode
+  volumes:
+  - name: my-volume-name
+    claim_name: my-volume-claim-name
+    size: my-claim-size-in-Gi
+    storage_class: <storage-class-type>
+    access_modes:
+    - "<storage-class-access-mode>"
+    volume_mount:
+      name: "volume-mount-name"
+      mount_path: "volume-mount-destination-path"
+    persist: <if-persist>
 
-E.g. 
-
-```yaml
-- id: profile_iga_remote_desktop
-  groups: 
-  - group-1
-  definition:
-    display_name: Remote Desktop
-    slug: iga_remote_desktop
-    default: False
-    kubespawner_override:
-      cpu_limit: 1
-      mem_limit: 4G
-      image:  eoepca/iga-remote-desktop
-  default_url: "desktop"
-  node_selector: 
-    k8s.provider.com/pool-name: node-pool-a
 ```
 
 Breakdown:
 
-- id: the profile identifier of your app 
-- groups: the group list containing the users groups that can use the declared app 
-- definition: display name, reference slug identifying the app, cpu/ram requirements alloted for it, reference docker image for the app-level
-- default_url: default uri where to find the app 
-- node_selector: identifies on which node pool the app is executed 
+- **id**: the profile identifier of your app 
+- **groups**: the group list containing the users groups that can use the declared app 
+- **definition**: display name, reference slug identifying the app, cpu/ram requirements alloted for it, reference docker image for the app-level
+- **default_url**: default uri where to find the app 
+- **node_selector**: identifies on which node pool the app is executed 
+- **config-maps**: definition of env variables expressed as '<key>:<value>' or config/secret files together with their mount_path, access, default_mode 
+- **volumes**: handle the volumes, their persistency, their kubernetes access type (e.g. ReadWriteOnce, ReadWriteMany, ...), their size claim and their mount_path
+
+
+## Remote Desktop
+
+
+```yaml
+- id: profile_studio_desktop_native
+  groups:
+  - group-b
+  definition:
+    display_name: IGA - Remote Desktop base
+    slug: ellip_studio_desktop_native
+    default: False
+    kubespawner_override:
+      cpu_limit: 1
+      mem_limit: 4G
+      image: eoepca/iga-remote-desktop:develop
+  default_url: "desktop"
+  node_selector: {}
+  config_maps:
+  - name: aws-credentials
+    key: aws-credentials
+    mount_path: /home/jovyan/.aws/credentials
+    default_mode: "0660"
+    readonly: true
+  - name: aws-config
+    key: aws-config
+    mount_path: /home/jovyan/.aws/config
+    default_mode: "0660"
+    readonly: true
+  - name: docker-config
+    key: docker-config
+    mount_path: /home/jovyan/.docker/config.json
+    default_mode: "0660"
+    readonly: true
+  volumes:
+  - name: volume-workspace
+    claim_name: claim-workspace
+    size: 10Gi
+    storage_class: "standard"
+    access_modes:
+    - "ReadWriteOnce"
+    volume_mount:
+      name: volume-workspace
+      mount_path: "/workspace"
+    persist: true
+```
+
+## JupyterLab 
+
+```yaml
+- id: profile_studio_labs
+  groups:
+  - group-c
+  definition:
+    display_name: IAT - Interactive Analysis Tool (JupyterLab)
+    slug: studio_labs_slug
+    default: False
+    kubespawner_override:
+      cpu_limit: 1
+      mem_limit: 4G
+      image: eoepca/iat-jupyterlab:main
+  default_url: "lab"
+  config_maps:
+  - name: aws-credentials
+    key: aws-credentials
+    mount_path: /home/jovyan/.aws/credentials
+    default_mode: "0660"
+    readonly: true
+  - name: aws-config
+    key: aws-config
+    mount_path: /home/jovyan/.aws/config
+    default_mode: "0660"
+    readonly: true
+  - name: docker-config
+    key: docker-config
+    mount_path: /home/jovyan/.docker/config.json
+    default_mode: "0660"
+    readonly: true
+  - name: new-cm
+    key: new-cm
+    mount_path: /home/jovyan/new-cm
+    default_mode: "0660"
+    readonly: true
+    content: |-
+      Hello World!
+    persist: false
+  volumes:
+  - name: volume-workspace
+    claim_name: claim-workspace
+    size: 10Gi
+    storage_class: "standard"
+    access_modes:
+    - "ReadWriteOnce"
+    volume_mount:
+      name: volume-workspace
+      mount_path: "/workspace"
+    persist: true
+  pod_env_vars:
+    A: "10"
+    B: "20"
+  node_selector: {}
+  role_bindings:
+  - name: pod_reader_role_binding
+    subjects:
+    - name: default
+      kind: ServiceAccount
+    role:
+      name: pod_reader_role
+      api_group: rbac.authorization.k8s.io
+      verbs:
+      - get
+      - list
+      - watch
+      resources:
+      - pods
+    persist: false
+```
+
+## CodeServer
+
+```yaml
+- id: profile_studio_coder
+  groups:
+  - group-b
+  definition:
+    display_name: PDE - Processor Development Environment (Code Server)
+    slug: ellip_studio_coder_slug
+    default: False
+    kubespawner_override:
+      cpu_limit: 1
+      mem_limit: 8G
+      image: eoepca/pde-code-server@sha256:98b77ef39830aec162d9a30311957a48f2b4010930e999969656db11fa788a1b
+  node_selector: {}
+  volumes:
+  - name: volume-workspace
+    claim_name: claim-dev
+    size: 10Gi
+    storage_class: "standard"
+    access_modes:
+    - "ReadWriteOnce"
+    volume_mount:
+      name: volume-workspace
+      mount_path: "/workspace"
+    persist: true
+  configMaps:
+  - name: bash-rc
+    key: bash-rc
+    content: |-
+      alias ll="ls -l"
+      . /home/jovyan/.bashrc 
+    mount_path: /workspace/.bashrc
+    default_mode: "0660"
+    readonly: true
+  - name: aws-credentials
+    key: aws-credentials
+    mount_path: /home/jovyan/.aws/credentials
+    default_mode: "0660"
+    readonly: true
+  - name: aws-config
+    key: aws-config
+    mount_path: /home/jovyan/.aws/config
+    default_mode: "0660"
+    readonly: true
+  - name: docker-config
+    key: docker-config
+    mount_path: /home/jovyan/.docker/config.json
+    default_mode: "0660"
+    readonly: true
+```
 
 To have a compliant candidate app to be added to the AppHub, it must comply with the proper Dockerfile definition before reference its produced docker image into the configuration.
 In addition it must be pushed on a registry accessible from the AppHub deployment.
 These images must expose a service on a given port.
 There are two options to have JupyterHub to proxy these applications: 
-- jupyter-server-proxy 
-- jhsingle-native-proxy
 
-## jupyter-server-proxy approach
+- **jupyter-server-proxy**
+- **jhsingle-native-proxy**
+
+
+
+## Jupyter-server-proxy Dockerfile approach
 The jupyter-server-proxy exposes the application alongside with the JupyterLab instance whilst jhsingle-native-proxy proxies the application without a running JupyterLab instance.
 
 In example the eoepca/iga-remote-desktop_qgis uses the approach with jupyter-server-proxy.
@@ -73,7 +261,7 @@ RUN chown -R $NB_UID:$NB_GID $HOME
 USER $NB_USER
 ```
 
-## jhsingle-native-proxy approach
+## Jhsingle-native-proxy Dockerfile approach
 The jhsingle-native-proxy approach instead is based on a Dockerfile following this flow:
 
 ```
@@ -108,21 +296,21 @@ CMD ["jhsingle-native-proxy", "--destport",      "8505",         "streamlit",   
 
 Params breakdown:
 
---destport: specifies the destination port number where the target APPLICATION (in this case, Streamlit) will run.
+**--destport**: specifies the destination port number where the target APPLICATION (in this case, Streamlit) will run.
 
---authtype: none disables authentication, meaning the application will not require authentication through JupyterHub.
+**--authtype**: none disables authentication, meaning the application will not require authentication through JupyterHub.
 
---port $port: This sets the PROXY server's external port number to $port.
+**--port**: This sets the PROXY server's external port number to $port.
 
 The {--} syntax is used to pass arguments to the app, e.g. Streamlit, command itself:
 {--}server.port {port}: server.port {port} sets the port number on which the Streamlit SERVER will run. Equivalently {--}bind-addr 0.0.0.0:$port
 
-{--}server.headless: True ensures that Streamlit runs in headless mode, meaning it does not require a graphical user interface (GUI).
+**{--}server.headless**: True ensures that Streamlit runs in headless mode, meaning it does not require a graphical user interface (GUI).
 
-{--}server.enableCORS: False disables Cross-Origin Resource Sharing (CORS), which is useful when running behind a proxy.
+**{--}server.enableCORS**: False disables Cross-Origin Resource Sharing (CORS), which is useful when running behind a proxy.
 
 
-In addition to the usual jhsingle-native-proxy params list an could require an user data path mapping and its VS code loading, e.g. with {--}user-data-dir & CODE_SERVER_WS:  
+In addition to the usual jhsingle-native-proxy params list an could require an user data path mapping and its VS code loading, e.g. with **{--}user-data-dir** & CODE\_SERVER\_WS:  
 
 ```
 CODE_SERVER_WS="/workspace"
@@ -141,7 +329,7 @@ This file enables the pulling of the app images from container registries.
         "my-registry-1.com": {
             "auth": "<base64encoded-docker-config-1>"
         },
-        "my-registry-1.com": {
+        "my-registry-2.com": {
             "auth": "<base64encoded-docker-config-2>"
         }
       }
