@@ -26,3 +26,4 @@ nav:
   - Kubernetes: 'k8s.md'
   - Configuration: 'configuration.md'
   - JupyterHub API: 'jupyterhub-api.md'
+  - Config: 'apphub-config-general.md'

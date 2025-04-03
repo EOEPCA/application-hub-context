@@ -55,21 +55,20 @@ This hook contextualises the Application pod to spawn and:
 
 ```python
 def pre_spawn_hook(spawner):
-
     spawner.http_timeout = 600
 
     profile_slug = spawner.user_options.get("profile", None)
 
     env = os.environ["JUPYTERHUB_ENV"].lower()
 
+    spawner.environment["CALRISSIAN_POD_NAME"] = f"jupyter-{spawner.user.name}-{env}"
+
     spawner.log.info(f"Using profile slug {profile_slug}")
 
     namespace = f"{namespace_prefix}-{spawner.user.name}"
 
     workspace = DefaultApplicationHubContext(
-        namespace=namespace,
-        spawner=spawner,
-        config_path=config_path
+        namespace=namespace, spawner=spawner, config_path=config_path, skip_namespace_check=False, 
     )
 
     workspace.initialise()
@@ -99,9 +98,7 @@ def post_stop_hook(spawner):
     namespace = f"jupyter-{spawner.user.name}"
 
     workspace = DefaultApplicationHubContext(
-        namespace=namespace,
-        spawner=spawner,
-        config_path=config_path
+        namespace=namespace, spawner=spawner, config_path=config_path
     )
     spawner.log.info("Dispose in post stop hook")
     workspace.dispose()
