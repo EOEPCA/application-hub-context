@@ -1,10 +1,5 @@
 ## ApplicationHub configuration generator
-
-
-
-
-
-
+This application aim to produce a `config.yml` file to generate all the configuration needs to be set for deployment of App Hub on a remote cluster using Devops tools. 
 # apphub-configurator
 
 [![PyPI - Version](https://img.shields.io/pypi/v/apphub-configurator.svg)](https://pypi.org/project/apphub-configurator)
@@ -26,11 +21,13 @@ Create a hatch environment with the dependencies listed in the file `pyproject.t
 hatch shell prod
 hatch -e prod run python -m ipykernel install --user --name=apphub_configurator --display-name "apphub_configurator"
 ```
+> Note: you may need to reopen visual studio code to set the jupyter kernel successfully.
 ## Overview
 This package contains a notebook and the python modules to support the generation of ApplicationHub configurations for a minikube cluster. For more information about ApplicationHub please check this [link](https://github.com/EOEPCA/application-hub-context)
 
 ## Examples:
 The [example](./examples/) folder contains a notebook and the python modules to support the generation of ApplicationHub configurations.
+
 ## License
 
 `apphub-configurator` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
