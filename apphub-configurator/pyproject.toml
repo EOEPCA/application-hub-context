@@ -24,10 +24,10 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/EOEPCA/application-hub-context/config-generator/apphub-configurator#readme"
+Documentation = "https://github.com/EOEPCA/application-hub-context/apphub-configurator/apphub-configurator#readme"
 Issues = "https://github.com/EOEPCA/application-hub-context/issues"
-Source = "https://github.com/EOEPCA/application-hub-context/config-generator/apphub-configurator"
-Examples = "https://github.com/EOEPCA/application-hub-context/config-generator/examples"
+Source = "https://github.com/EOEPCA/application-hub-context/apphub-configurator/apphub-configurator"
+Examples = "https://github.com/EOEPCA/application-hub-context/apphub-configurator/examples"
 
 [tool.hatch.version]
 path = "src/apphub_configurator/__about__.py"

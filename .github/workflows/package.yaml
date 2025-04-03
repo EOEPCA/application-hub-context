@@ -30,7 +30,7 @@ jobs:
         # python -m pip install --upgrade pip
         pip install hatch
     - name: Build package
-      run: hatch build config-generator/apphub-configurator/
+      run: hatch build apphub-configurator/apphub-configurator/
 
     - name: Publish package distributions to PyPI (main)
       if: github.ref == 'refs/heads/main'

@@ -4,14 +4,15 @@ profiles:
       \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
       \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
       \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
-      \nalias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
+      \n#alias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
       \ >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"\
       $('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0\
       \ ]; then\n    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\"\
       \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
       \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
       if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
-      \nfi\n# <<< conda initialize <<<\n"
+      \nfi\n# <<< conda initialize <<<\n\na={{spawner.user.name}}\n\nalias aws=\"\
+      aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566\""
     default_mode: null
     key: bash-rc
     mount_path: /workspace/.bashrc
@@ -32,6 +33,8 @@ profiles:
       mem_guarantee: null
       mem_limit: 8G
     slug: ellip_studio_coder_slug_s
+  env_from_config_maps: null
+  env_from_secrets: null
   groups:
   - group-a
   - group-b
@@ -44,6 +47,7 @@ profiles:
     CONDA_ENVS_PATH: /workspace/.envs
     HOME: /workspace
   role_bindings: null
+  secret_mounts: null
   volumes:
   - access_modes:
     - ReadWriteMany
@@ -59,7 +63,7 @@ profiles:
     - ReadWriteOnce
     claim_name: workspace-claim
     name: workspace-volume
-    persist: false
+    persist: true
     size: 50Gi
     storage_class: managed-nfs-storage
     volume_mount:
@@ -70,14 +74,15 @@ profiles:
       \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
       \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
       \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
-      \nalias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
+      \n#alias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
       \ >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"\
       $('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0\
       \ ]; then\n    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\"\
       \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
       \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
       if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
-      \nfi\n# <<< conda initialize <<<\n"
+      \nfi\n# <<< conda initialize <<<\n\na={{spawner.user.name}}\n\nalias aws=\"\
+      aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566\""
     default_mode: null
     key: bash-rc
     mount_path: /workspace/.bashrc
@@ -98,6 +103,8 @@ profiles:
       mem_guarantee: null
       mem_limit: 12G
     slug: ellip_studio_coder_slug_m
+  env_from_config_maps: null
+  env_from_secrets: null
   groups:
   - group-a
   - group-b
@@ -110,6 +117,7 @@ profiles:
     CONDA_ENVS_PATH: /workspace/.envs
     HOME: /workspace
   role_bindings: null
+  secret_mounts: null
   volumes:
   - access_modes:
     - ReadWriteMany
@@ -125,7 +133,7 @@ profiles:
     - ReadWriteOnce
     claim_name: workspace-claim
     name: workspace-volume
-    persist: false
+    persist: true
     size: 50Gi
     storage_class: managed-nfs-storage
     volume_mount:
@@ -176,6 +184,8 @@ profiles:
       mem_guarantee: 4G
       mem_limit: 6G
     slug: eoepca_demo_init_script
+  env_from_config_maps: null
+  env_from_secrets: null
   groups:
   - group-a
   - group-b
@@ -203,6 +213,7 @@ profiles:
     HOME: /workspace
     XDG_RUNTIME_DIR: /workspace/.local
   role_bindings: null
+  secret_mounts: null
   volumes:
   - access_modes:
     - ReadWriteMany
@@ -218,7 +229,7 @@ profiles:
     - ReadWriteOnce
     claim_name: workspace-claim
     name: workspace-volume
-    persist: false
+    persist: true
     size: 50Gi
     storage_class: managed-nfs-storage
     volume_mount:
@@ -239,6 +250,8 @@ profiles:
       mem_guarantee: 4G
       mem_limit: 6G
     slug: eoepca_jupyter_lab
+  env_from_config_maps: null
+  env_from_secrets: null
   groups:
   - group-c
   id: profile_jupyter_lab
@@ -251,12 +264,13 @@ profiles:
     XDG_CONFIG_HOME: /workspace/.config
     XDG_RUNTIME_DIR: /workspace/.local
   role_bindings: null
+  secret_mounts: null
   volumes:
   - access_modes:
     - ReadWriteOnce
     claim_name: workspace-claim
     name: workspace-volume
-    persist: false
+    persist: true
     size: 50Gi
     storage_class: managed-nfs-storage
     volume_mount:
@@ -278,12 +292,13 @@ profiles:
       mem_guarantee: 4G
       mem_limit: 6G
     slug: eoepca_jupyter_lab_2
+  env_from_config_maps: null
+  env_from_secrets: null
   groups:
   - group-c
   id: profile_jupyter_lab_2
   image_pull_secrets:
-  - data: null
-  - data: ''
+  - data: ewogICAgImF1dGhzIjogewogICAgICAgICJjci50ZXJyYWR1ZS5jb20iOiB7CiAgICAgICAgICAgICJ1c2VybmFtZSI6ICJyb2JvdCRlb2VwY2EtcGx1cy1ybyIsCiAgICAgICAgICAgICJwYXNzd29yZCI6ICJQMlE4TnkyZ0lHODhkZkxveXlLN05QVUZVbHJOekFZSiIsCiAgICAgICAgICAgICJlbWFpbCI6ICJlb2VwY2EtcGx1c0B0ZXJyYWR1ZS5jb20iLAogICAgICAgICAgICAiYXV0aCI6ICJjbTlpYjNRa1pXOWxjR05oTFhCc2RYTXRjbTg2VURKUk9FNTVNbWRKUnpnNFpHWk1iM2w1U3pkT1VGVkdWV3h5VG5wQldVbz0iCiAgICAgICAgfQogICAgfQp9
     name: cr-config
     persist: false
   init_containers: []
@@ -294,12 +309,13 @@ profiles:
     XDG_CONFIG_HOME: /workspace/.config
     XDG_RUNTIME_DIR: /workspace/.local
   role_bindings: null
+  secret_mounts: null
   volumes:
   - access_modes:
     - ReadWriteOnce
     claim_name: workspace-claim
     name: workspace-volume
-    persist: false
+    persist: true
     size: 50Gi
     storage_class: managed-nfs-storage
     volume_mount:
@@ -331,14 +347,15 @@ profiles:
       \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
       \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
       \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
-      \nalias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
+      \n#alias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
       \ >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"\
       $('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0\
       \ ]; then\n    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\"\
       \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
       \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
       if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
-      \nfi\n# <<< conda initialize <<<\n"
+      \nfi\n# <<< conda initialize <<<\n\na={{spawner.user.name}}\n\nalias aws=\"\
+      aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566\""
     default_mode: null
     key: bash-rc
     mount_path: /workspace/.bashrc
@@ -369,12 +386,14 @@ profiles:
       mem_guarantee: 4G
       mem_limit: 6G
     slug: eoepca_coder_slug_stac
+  env_from_config_maps: null
+  env_from_secrets: null
   groups:
   - group-a
   - group-b
   id: profile_studio_coder_stac
   image_pull_secrets:
-  - data: null
+  - data: ewogICAgImF1dGhzIjogewogICAgICAgICJjci50ZXJyYWR1ZS5jb20iOiB7CiAgICAgICAgICAgICJ1c2VybmFtZSI6ICJyb2JvdCRlb2VwY2EtcGx1cy1ybyIsCiAgICAgICAgICAgICJwYXNzd29yZCI6ICJQMlE4TnkyZ0lHODhkZkxveXlLN05QVUZVbHJOekFZSiIsCiAgICAgICAgICAgICJlbWFpbCI6ICJlb2VwY2EtcGx1c0B0ZXJyYWR1ZS5jb20iLAogICAgICAgICAgICAiYXV0aCI6ICJjbTlpYjNRa1pXOWxjR05oTFhCc2RYTXRjbTg2VURKUk9FNTVNbWRKUnpnNFpHWk1iM2w1U3pkT1VGVkdWV3h5VG5wQldVbz0iCiAgICAgICAgfQogICAgfQp9
     name: cr-config
     persist: false
   init_containers:
@@ -616,6 +635,7 @@ profiles:
         template:
           metadata:
             labels:
+              app: localstack-{{ spawner.user.name }}
               app.kubernetes.io/instance: localstack
               app.kubernetes.io/name: localstack
           spec:
@@ -821,6 +841,64 @@ profiles:
             securityContext: {}
             serviceAccountName: localstack
             volumes: []
+    - apiVersion: v1
+      data:
+        ENV_VAR1: value1
+        ENV_VAR2: value2
+      kind: ConfigMap
+      metadata:
+        name: my-config
+    - apiVersion: v1
+      data:
+        SECRET_KEY1: dmFsdWUx
+        SECRET_KEY2: dmFsdWUy
+      kind: Secret
+      metadata:
+        name: my-secret
+      type: Opaque
+    - apiVersion: v1
+      data:
+        credentials: W2RlZmF1bHRdCmF3c19hY2Nlc3Nfa2V5X2lkPUFTSUFJT1NGT0ROTjdFWEFNUExFCmF3c19zZWNyZXRfYWNjZXNzX2tleT13SmFsclhVdG5GRU1JL0s3TURFTkcvYlB4UmZpQ1lFWEFNUExFS0VZCmF3c19zZXNzaW9uX3Rva2VuPUlRb0piM2pySmdCV05FTE5Hb2xHSkxFT3RTVEFOR1k0TFlPNUk0SzVOUlZFS1pPTkNTTk1HRlNUS1FNSUxXUjJPUzAwRklDRTExSlg=
+      kind: Secret
+      metadata:
+        name: aws-credentials-{{ spawner.user.name }}
+      type: Opaque
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: data-by-name
+        namespace: jupyter-{{ spawner.user.name }}
+      spec:
+        data:
+        - remoteRef:
+            key: secret-one
+            property: the-key
+          secretKey: secret-value
+        refreshInterval: 15s
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: k8s-secret-store
+        target:
+          creationPolicy: Owner
+          name: data-by-name
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: eoepca-plus-secret-ro
+        namespace: jupyter-{{ spawner.user.name }}
+      spec:
+        data:
+        - remoteRef:
+            key: eoepca-plus-secret-ro
+            property: .dockerconfigjson
+          secretKey: .dockerconfigjson
+        refreshInterval: 15s
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: k8s-secret-store
+        target:
+          creationPolicy: Owner
+          name: eoepca-plus-secret-ro
     key: manifests
     name: manifests
     persist: false
@@ -838,40 +916,32 @@ profiles:
     XDG_DATA_HOME: /workspace/.local/share/
     XDG_RUNTIME_DIR: /workspace/.local
   role_bindings: []
+  secret_mounts: null
   volumes:
   - access_modes:
     - ReadWriteOnce
     claim_name: workspace-claim
     name: workspace-volume
-    persist: false
+    persist: true
     size: 50Gi
     storage_class: managed-nfs-storage
     volume_mount:
       mount_path: /workspace
       name: workspace-volume
 - config_maps:
-  - content: "mkdir -p /workspace/.config/autostart\n\n\ncat <<EOF > /workspace/.config/autostart/qgis.desktop\
-      \ \n[Desktop Entry]\nEncoding=UTF-8\nVersion=0.9.4\nType=Application\nName=qgis\n\
-      Comment=qgis\nExec=qgis\nOnlyShowIn=XFCE;\nRunHook=0\nStartupNotify=false\n\
-      Terminal=false\nHidden=false\nEOF"
-    default_mode: null
-    key: init
-    mount_path: /opt/init/.init.sh
-    name: init
-    persist: false
-    readonly: true
   - content: "alias ll=\"ls -l\"\nalias calrissian=\"/opt/conda/bin/calrissian --pod-nodeselectors\
       \ /etc/calrissian/pod-node-selector.yml --stdout /calrissian/results.json --max-ram\
       \ 16G --max-cores \"8\" --tmp-outdir-prefix /calrissian/tmp/ --outdir /calrissian/\"\
       \nalias cwltool=\"/opt/conda/bin/cwltool --podman\"\n. /home/jovyan/.bashrc\n\
-      \nalias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
+      \n#alias aws=\"aws --endpoint-url=http://localstack:4566\"\n\n# >>> conda initialize\
       \ >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"\
       $('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0\
       \ ]; then\n    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\"\
       \ ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n     \
       \   export PATH=\"/srv/conda/bin:$PATH\"\n    fi\nfi\nunset __conda_setup\n\n\
       if [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\
-      \nfi\n# <<< conda initialize <<<\n"
+      \nfi\n# <<< conda initialize <<<\n\na={{spawner.user.name}}\n\nalias aws=\"\
+      aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566\""
     default_mode: null
     key: bash-rc
     mount_path: /workspace/.bashrc
@@ -897,44 +967,30 @@ profiles:
       cpu_limit: 2
       extra_resource_guarantees: {}
       extra_resource_limits: {}
-      image: eoepca/iga-remote-desktop-qgis:1.1.2
+      image: eoepca/iga-remote-desktop-qgis:1.1.3
       mem_guarantee: null
       mem_limit: 2G
     slug: eoepca_desktop_qgis
+  env_from_config_maps: null
+  env_from_secrets: null
   groups:
   - group-a
   - group-b
   id: profile_studio_desktop_qgis
   image_pull_secrets: []
-  init_containers:
-  - command:
-    - sh
-    - -c
-    - sh /opt/init/.init.sh
-    image: eoepca/pde-code-server:develop
-    name: init-file-on-volume
-    volume_mounts:
-    - mount_path: /workspace
-      name: workspace-volume
-    - mount_path: /opt/init/.init.sh
-      name: init
-      sub_path: init
+  init_containers: []
   manifests: null
   node_selector: {}
   pod_env_vars:
-    AWS_ACCESS_KEY_ID: SCWMRGD5GA0Y68XRKFW8
-    AWS_REGION: fr-par
-    AWS_S3_ENDPOINT: s3.fr-par.scw.cloud
-    AWS_SECRET_ACCESS_KEY: a9a7dc0c-8b0a-47b1-a311-b134b258dbb3
-    AWS_VIRTUAL_HOSTING: 'true'
     HOME: /workspace
   role_bindings: null
+  secret_mounts: null
   volumes:
   - access_modes:
     - ReadWriteOnce
     claim_name: workspace-claim
     name: workspace-volume
-    persist: false
+    persist: true
     size: 50Gi
     storage_class: managed-nfs-storage
     volume_mount:
