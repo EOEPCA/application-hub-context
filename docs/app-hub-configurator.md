@@ -26,7 +26,7 @@ hatch -e prod run python -m ipykernel install --user --name=apphub_configurator 
 This package contains a notebook and the python modules to support the generation of ApplicationHub configurations for a minikube cluster. For more information about ApplicationHub please check this [link](https://github.com/EOEPCA/application-hub-context)
 
 ## Examples:
-The [example](./examples/) folder contains a notebook and the python modules to support the generation of ApplicationHub configurations.
+The [example](../apphub-configurator/examples/) folder contains a notebook and the python modules to support the generation of ApplicationHub configurations.
 
 ## License
 
