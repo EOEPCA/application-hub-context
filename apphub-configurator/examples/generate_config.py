@@ -11,6 +11,8 @@ from apphub_configurator.helpers import (
 )
 import click
 
+logger.info("Generating config file...")
+
 storage_class_rwo = "standard"
 storage_class_rwx = "standard"
 profiles = []
@@ -160,3 +162,7 @@ config_file_path = str(Path(current_dir).parent.parent / 'files' / 'hub' / 'conf
 
 with open(config_file_path, "w") as file:
     yaml.dump(config.model_dump(), file, width=200)
+
+logger.success(
+    f"Config file generated successfully at {config_file_path}"
+)
