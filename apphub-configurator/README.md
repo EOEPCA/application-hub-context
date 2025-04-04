@@ -6,7 +6,6 @@ This application aim to produce a `config.yml` file to generate all the configur
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/apphub-configurator.svg)](https://pypi.org/project/apphub-configurator)
 
 -----
-
 ## Table of Contents
 
 - [Installation](#installation)
@@ -28,6 +27,6 @@ This package contains a notebook and the python modules to support the generatio
 ## Examples:
 The [example](./examples/) folder contains a notebook and the python modules to support the generation of ApplicationHub configurations.
 
-## License
 
+## License
 `apphub-configurator` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.

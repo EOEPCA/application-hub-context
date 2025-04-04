@@ -17,6 +17,7 @@ RUN microdnf update -y && \
     gcc \
     libcurl-devel \
     openssl-devel \
+    postgresql-devel \
     && microdnf clean all
 
 # Installation of configurable-http-proxy via npm

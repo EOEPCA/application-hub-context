@@ -27,3 +27,4 @@ nav:
   - Configuration: 'configuration.md'
   - AppHub Configurator Application Package: 'app-hub-configurator.md'
   - JupyterHub API: 'jupyterhub-api.md'
+  - Config: 'apphub-config-general.md'
