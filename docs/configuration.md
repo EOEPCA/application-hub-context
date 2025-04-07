@@ -31,7 +31,7 @@ The module defines several Pydantic-based data classes representing Kubernetes o
 
 - **`SubjectKind`**: An enumeration specifying the type of subject (e.g., `ServiceAccount`, `User`) for role-based access control (RBAC) configurations.
 
-- **`Verb`**: An enumeration listing the permissible actions (e.g., `get`, `list`, `create`) for RBAC roles and role bindings.
+- **`Verb`**: An enumeration listing the allowed actions (e.g., `get`, `list`, `create`) for RBAC roles and role bindings.
 
 - **`Subject`**: Defines a subject in RBAC, comprising a `name` and a `kind` (type).
 
