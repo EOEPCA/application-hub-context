@@ -68,17 +68,17 @@ These data classes provide a structured approach to defining Kubernetes resource
 ### Examples: 
 The user can follow the examples provided to setup different profiles on Application Hub through the provided [notebook](../apphub-configurator/examples/config-generator.ipynb) under example folder. In the notebook, the user is able to configure different profile including:
 
-- Coder
+* Coder
 
-- Coder with a init.sh
+* Coder with a init.sh
 
-- Jupyter Lab
+* Jupyter Lab
 
-- JupyterLab Plus
+* JupyterLab Plus
 
-- E-learning
+* E-learning
 
-- QGIS
+* QGIS
 
 ### Output format:
 
