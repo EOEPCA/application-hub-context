@@ -5,6 +5,7 @@ on:
     branches: [develop, main, "patch-1" ]
     paths:
     - 'apphub-configurator/**'
+    - '.github/workflows/package.yaml'
     
   release:
     types: [published]
