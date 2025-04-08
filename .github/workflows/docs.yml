@@ -23,5 +23,6 @@ jobs:
         with:
           python-version: 3.x
       - run: |
+            cp apphub-configurator/examples/config-generator.ipynb docs/config-generator.ipynb
             pip install mkdocs-material mkdocs-mermaid2-plugin mkdocs-jupyter
             mkdocs gh-deploy --force

@@ -66,7 +66,7 @@ The module defines several Pydantic-based data classes representing Kubernetes o
 These data classes provide a structured approach to defining Kubernetes resources.
 
 ### Examples: 
-The user can follow the examples provided to setup different profiles on Application Hub through the provided [notebook](../apphub-configurator/examples/config-generator.ipynb) under example folder. In the notebook, the user is able to configure different profile including:
+The user can follow the examples provided to setup different profiles on Application Hub through the provided [notebook](./config-generator.ipynb) under example folder. In the notebook, the user is able to configure different profile including:
 
 * Coder
 
