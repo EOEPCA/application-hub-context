@@ -7,3 +7,7 @@ _README.md
 dist
 .env-apphub-configurator
 hatch
+
+.project
+.settings
+.pydevproject

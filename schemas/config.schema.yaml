@@ -1,0 +1,339 @@
+$schema: "https:/json-schema.org/draft/2020-12/schema"
+$id: "https:/www.terradue.com/eoap/v1/project.yaml"
+title: Config
+type: object
+properties:
+  profiles:
+    type: array
+    items:
+      $ref: "#/$defs/Profile"
+required:
+- profiles
+
+$defs:
+
+  ConfigMap:
+    type: object
+    properties:
+      name:
+        type: string
+      key:
+        type: string
+      mount_path:
+        type: string
+      default_mode:
+        type: string
+      readonly:
+        type: boolean
+      content:
+        type: string
+      persist:
+        type: boolean
+        default: true
+    required:
+    - name
+    - key
+    - readonly
+
+  ConfigMapEnvVarReference:
+    type: object
+    properties:
+      from_config_map:
+        $ref: "#/$defs/ConfigMapKeyRef"
+    required:
+    - from_config_map
+
+  ConfigMapKeyRef:
+    type: object
+    properties:
+      name:
+        type: string
+      key:
+        type: string
+    required:
+    - name
+    - key
+
+  ImagePullSecret:
+    type: object
+    properties:
+      name:
+        type: string
+      persist:
+        default: true
+        type: boolean
+      data:
+        type: string
+    required:
+    - name
+
+  InitContainer:
+    type: object
+    properties:
+      name:
+        type: string
+      image:
+        type: string
+      command:
+        type: array
+        items:
+          type: string
+      volume_mounts:
+        type: array
+        items:
+          $ref: "#/$defs/VolumeMount"
+    required:
+    - name
+    - image
+    - command
+    - volume_mounts
+
+  KubespawnerOverride:
+    type: object
+    properties:
+      cpu_limit:
+        type: integer
+      cpu_guarantee:
+        type: integer
+      mem_limit:
+        type: string
+      mem_guarantee:
+        type: string
+      image:
+        type: string
+      extra_resource_limits:
+        type: object
+        additionalProperties: true
+      extra_resource_guarantees:
+        type: object
+        additionalProperties: true
+    required:
+    - cpu_limit
+    - mem_limit
+    - image
+
+  Manifest:
+    type: object
+    properties:
+      name:
+        type: string
+      key:
+        type: string
+      content:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+      persist:
+        type: boolean
+        default: true
+    required:
+    - name
+    - key
+
+  Profile:
+    type: object
+    properties:
+      id:
+        type: string
+      groups:
+        type: array
+        items:
+          type: string
+      definition:
+        $ref: "#/$defs/ProfileDefinition"
+      config_maps:
+        type: array
+        items:
+          $ref: "#/$defs/ConfigMap"
+      volumes:
+        type: array
+        items:
+          $ref: "#/$defs/Volume"
+      pod_env_vars:
+        type: object
+        additionalProperties:
+          anyOf:
+          - type: string
+          - $ref: "#/$defs/ConfigMapEnvVarReference"
+      default_url:
+        type: string
+      node_selector:
+        type: object
+        additionalProperties: true
+      role_bindings:
+        type: array
+        items:
+          $ref: "#/$defs/RoleBinding"
+      image_pull_secrets:
+        type: array
+        items:
+          $ref: "#/$defs/ImagePullSecret"
+      init_containers:
+        type: array
+        items:
+          $ref: "#/$defs/InitContainer"
+      manifests:
+        type: array
+        items:
+          $ref: "#/$defs/Manifest"
+      env_from_config_maps:
+        type: array
+        items:
+          type: string
+      env_from_secrets:
+        type: array
+        items:
+          type: string
+      secret_mounts:
+        type: array
+        items:
+          $ref: "#/$defs/SecretMount"
+    required:
+    - id
+    - groups
+    - definition
+    - node_selector
+
+  ProfileDefinition:
+    type: object
+    properties:
+      display_name:
+        type: string
+      description:
+        type: string
+      slug:
+        type: string
+      default:
+        type: boolean
+      kubespawner_override:
+        $ref: "#/$defs/KubespawnerOverride"
+    required:
+    - display_name
+    - slug
+    - default
+    - kubespawner_override
+
+  Role:
+    type: object
+    properties:
+      name:
+        type: string
+      resources:
+        type: array
+        items:
+          type: string
+      verbs:
+        type: array
+        items:
+          $ref: "#/$defs/Verb"
+      api_groups:
+        type: array
+        items:
+          type: string
+    required:
+    - name
+    - resources
+    - verbs
+
+  RoleBinding:
+    type: object
+    properties:
+      name:
+        type: string
+      subjects:
+        items:
+          $ref: "#/$defs/Subject"
+        type: array
+      role:
+        $ref: "#/$defs/Role"
+      persist:
+        type: boolean
+        default: true
+    required:
+    - name
+    - subjects
+    - role
+
+  SecretMount:
+    type: object
+    properties:
+      name:
+        type: string
+      mount_path:
+        type: string
+      sub_path:
+        type: string
+    required:
+    - name
+    - mount_path
+
+  Subject:
+    type: object
+    properties:
+      name:
+        type: string
+      kind:
+        $ref: "#/$defs/SubjectKind"
+    required:
+    - name
+    - kind
+
+  SubjectKind:
+    type: string
+    enum:
+    - ServiceAccount
+    - User
+
+  Verb:
+    type: string
+    enum:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+    - delete
+    - deletecollection
+
+  Volume:
+    type: object
+    properties:
+      name:
+        type: string
+      claimName:
+        type: string
+      size:
+        type: string
+      storage_class:
+        type: string
+      access_modes:
+        items:
+          type: string
+        type: array
+      volume_mount:
+        $ref: "#/$defs/VolumeMount"
+      persist:
+        type: boolean
+    required:
+    - name
+    - claim_name
+    - size
+    - storage_class
+    - access_modes
+    - volume_mount
+    - persist
+
+  VolumeMount:
+    type: object
+    properties:
+      name:
+        type: string
+      mount_path:
+        type: string
+      sub_path:
+        type: string
+    required:
+    - name
+    - mount_path

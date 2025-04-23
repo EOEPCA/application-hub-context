@@ -1,0 +1,36 @@
+version: '3'
+
+tasks:
+
+  # schema
+
+  conditional-pip-install:
+    internal: true
+    status:
+    - command -v {{.COMMAND}}
+    cmds:
+    - pip install {{.COMMAND}}
+
+  check-schema:
+    desc: Executes a strict JSON schema check
+    deps:
+    - task: conditional-pip-install
+      vars:
+        COMMAND: check-jsonschema
+    cmds:
+    - for: ["./files/hub/config.yml"]
+      cmd: check-jsonschema --schemafile ./schemas/config.schema.yaml {{.ITEM}}
+
+  create-models:
+    desc: Generates the Pydantic models with field aliases
+    deps:
+    - task: conditional-pip-install
+      vars:
+        COMMAND: datamodel-codegen
+    cmds:
+    - |
+      datamodel-codegen  --input ./schemas/config.schema.yaml \
+                         --input-file-type jsonschema \
+                         --output-model-type pydantic_v2.BaseModel \
+                         --base-class pydantic.BaseModel \
+                         --output ./application_hub_context/models.py

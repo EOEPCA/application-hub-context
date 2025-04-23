@@ -30,15 +30,15 @@ profiles:
     name: init
     persist: false
     readonly: true
-  - content: null
-    default_mode: null
+  - # content: null
+    # default_mode: null
     key: gateway
     mount_path: /etc/dask/gateway.yaml
     name: dask-gateway-config
     persist: true
     readonly: true
-  - content: null
-    default_mode: null
+  - # content: null
+    # default_mode: null
     key: gateway
     mount_path: /workspace/.config/dask/gateway.yaml
     name: dask-gateway-config-ws
@@ -47,7 +47,7 @@ profiles:
   - content: 'source /workspace/.bashrc
 
       '
-    default_mode: null
+    # default_mode: null
     key: bash-login
     mount_path: /etc/profile.d/bash-login.sh
     name: bash-login
@@ -59,13 +59,13 @@ profiles:
       \    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\" ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n        export PATH=\"/srv/conda/bin:$PATH\"\
       \n    fi\nfi\nunset __conda_setup\n\nif [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\nfi\n# <<< conda initialize <<<\n\na={{spawner.user.name}}\n\
       \nalias aws=\"aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566\""
-    default_mode: null
+    # default_mode: null
     key: bash-rc
     mount_path: /workspace/.bashrc
     name: bash-rc
     persist: true
     readonly: true
-  default_url: null
+  # default_url: null
   definition:
     default: false
     description: This profile is used to demonstrate the use of an init script
@@ -89,7 +89,7 @@ profiles:
   - group-b
   id: profile_1
   image_pull_secrets:
-  - data: null
+  - # data: null
     name: eoepca-plus-secret-ro
     persist: true
   init_containers:
@@ -699,10 +699,10 @@ profiles:
           - sleep infinity
           image: gcr.io/kaniko-project/executor:debug
           name: kaniko
-          volumeMounts:
-          - mountPath: /calrissian
+          volume_mounts:
+          - mount_path: /calrissian
             name: build-context
-          - mountPath: /kaniko/.docker
+          - mount_path: /kaniko/.docker
             name: kaniko-secret
         restartPolicy: Never
         volumes:
@@ -753,14 +753,14 @@ profiles:
     DASK_GATEWAY: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80
     HOME: /workspace
     XDG_RUNTIME_DIR: /workspace/.local
-  role_bindings: null
+  # role_bindings: null
   secret_mounts:
   - mount_path: /workspace/.aws
     name: aws-credentials-{{ spawner.user.name }}
-    sub_path: null
+    # sub_path: null
   - mount_path: /workspace/.data-by-name
     name: data-by-name
-    sub_path: null
+    # sub_path: null
   - mount_path: /workspace/.docker/config.json
     name: eoepca-plus-secret-ro
     sub_path: .dockerconfigjson
