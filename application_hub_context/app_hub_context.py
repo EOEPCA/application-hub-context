@@ -587,7 +587,7 @@ class ApplicationHubContext(ABC):
             # Define the ExternalSecret details
             group = "external-secrets.io"  
             version = "v1beta1"          
-            namespace = f"jupyter-{self.spawner.user.name}"       
+            namespace = self.namespace       
             plural = "externalsecrets"
 
             self.custom_objects_api.create_namespaced_custom_object(
