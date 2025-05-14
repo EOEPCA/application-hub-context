@@ -104,6 +104,7 @@ $defs:
       extra_resource_limits:
         type: object
         additionalProperties: true
+        default: {}
       extra_resource_guarantees:
         type: object
         additionalProperties: true
@@ -231,6 +232,7 @@ $defs:
         type: array
         items:
           type: string
+        default: [""]
     required:
     - name
     - resources
@@ -302,7 +304,7 @@ $defs:
     properties:
       name:
         type: string
-      claimName:
+      claim_name:
         type: string
       size:
         type: string
@@ -330,9 +332,9 @@ $defs:
     properties:
       name:
         type: string
-      mount_path:
+      mountPath:
         type: string
-      sub_path:
+      subPath:
         type: string
     required:
     - name
