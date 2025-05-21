@@ -41,7 +41,9 @@ RUN pip3 install --upgrade --no-cache-dir setuptools pip
 
 # Specific Python dependencies installation
 RUN PYCURL_SSL_LIBRARY=openssl \
-    pip install --no-cache-dir -r /tmp/requirements.txt
+    pip install --no-cache-dir -r /tmp/requirements.txt &&\
+    pip install --no-cache-dir "tornado==6.5.0"
+
 
 # Check and correct requirejs version
 RUN sed -i 's/"version": "[^"]*"/"version": "2.3.7"/' /usr/local/share/jupyterhub/static/components/requirejs/package.json
