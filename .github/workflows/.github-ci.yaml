@@ -168,5 +168,5 @@ jobs:
         tag="${docker_image_application}:${docker_image_version}"
         docker tag "${tag}" "ghcr.io/${{ env.docker_tag }}"
         docker tag "${tag}" "ghcr.io/${{ env.docker_tag_latest }}"
-        docker push "ghcr.io/EOEPCA/${{ env.docker_tag }}"
-        docker push "ghcr.io/EOEPCA/${{ env.docker_tag_latest }}"
+        docker push "ghcr.io/${{ env.docker_tag }}"
+        docker push "ghcr.io/${{ env.docker_tag_latest }}"
