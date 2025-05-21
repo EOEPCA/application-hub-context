@@ -50,7 +50,7 @@ class ApplicationHubContext(ABC):
 
         # loads config
         self.config_parser = ConfigParser.read_file(
-            config_path=config_path, user_groups=self.user_groups, spawner=self.spawner
+            config_path=config_path, user_groups=self.user_groups, spawner=self.spawner, namespace=self.namespace
         )
 
         # update class dict with kwargs
@@ -546,7 +546,8 @@ class ApplicationHubContext(ABC):
     def apply_manifest(self, manifest):
 
         template = Template(yaml.dump(manifest))
-        rendered_manifest = template.render(spawner=self.spawner)
+        rendered_manifest = template.render(spawner=self.spawner,
+                                            namespace=self.namespace)
         
         self.spawner.log.info(f"Applying manifest name: {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
 

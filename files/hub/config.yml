@@ -30,15 +30,15 @@ profiles:
     name: init
     persist: false
     readonly: true
-  - # content: null
-    # default_mode: null
+  - content: null
+    default_mode: null
     key: gateway
     mount_path: /etc/dask/gateway.yaml
     name: dask-gateway-config
     persist: true
     readonly: true
-  - # content: null
-    # default_mode: null
+  - content: null
+    default_mode: null
     key: gateway
     mount_path: /workspace/.config/dask/gateway.yaml
     name: dask-gateway-config-ws
@@ -47,7 +47,7 @@ profiles:
   - content: 'source /workspace/.bashrc
 
       '
-    # default_mode: null
+    default_mode: null
     key: bash-login
     mount_path: /etc/profile.d/bash-login.sh
     name: bash-login
@@ -58,14 +58,14 @@ profiles:
       \n\n# >>> conda initialize >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"$('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0 ]; then\n\
       \    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\" ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n        export PATH=\"/srv/conda/bin:$PATH\"\
       \n    fi\nfi\nunset __conda_setup\n\nif [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\nfi\n# <<< conda initialize <<<\n\na={{spawner.user.name}}\n\
-      \nalias aws=\"aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566\""
-    # default_mode: null
+      \nalias aws=\"aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566\"\n\nexport PATH=/workspace/.local/bin:$PATH"
+    default_mode: null
     key: bash-rc
     mount_path: /workspace/.bashrc
     name: bash-rc
     persist: true
     readonly: true
-  # default_url: null
+  default_url: null
   definition:
     default: false
     description: This profile is used to demonstrate the use of an init script
@@ -89,7 +89,7 @@ profiles:
   - group-b
   id: profile_1
   image_pull_secrets:
-  - # data: null
+  - data: null
     name: eoepca-plus-secret-ro
     persist: true
   init_containers:
@@ -100,7 +100,7 @@ profiles:
     image: eoepca/pde-code-server:develop
     name: init-file-on-volume
     volume_mounts:
-    - mount_path: /calrissian
+    - mount_path: /workspace
       name: workspace-volume
     - mount_path: /opt/init/.init.sh
       name: init
@@ -563,7 +563,7 @@ profiles:
       kind: ExternalSecret
       metadata:
         name: data-by-name
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{namespace}-{{ spawner.user.name }}'
       spec:
         data:
         - remoteRef:
@@ -581,7 +581,7 @@ profiles:
       kind: ExternalSecret
       metadata:
         name: eoepca-plus-secret-ro
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{namespace}-{{ spawner.user.name }}'
       spec:
         data:
         - remoteRef:
@@ -603,14 +603,14 @@ profiles:
       kind: Release
       metadata:
         name: dask-gw-jupyter-{{ spawner.user.name }}
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{namespace}-{{ spawner.user.name }}'
       spec:
         forProvider:
           chart:
             name: dask-gateway
             repository: https://helm.dask.org
             version: 2024.1.0
-          namespace: jupyter-{{ spawner.user.name }}
+          namespace: '{namespace}-{{ spawner.user.name }}'
           values:
             gateway:
               backend:
@@ -628,14 +628,14 @@ profiles:
           name: helm-provider
     - apiVersion: v1
       data:
-        gateway: "gateway:\n  address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80\n\n  cluster:\n    options: \n      image:\
+        gateway: "gateway:\n  address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.{namespace}-{{ spawner.user.name }}.svc.cluster.local:80\n\n  cluster:\n    options: \n      image:\
           \ \"ghcr.io/fabricebrito/dev-platform-dask-gateway/worker:1.0.0\"\n      worker_cores: 0.5\n      worker_cores_limit: 1\n      worker_memory: \"4 G\"\n"
       kind: ConfigMap
       metadata:
         name: dask-gateway-config
     - apiVersion: v1
       data:
-        gateway: "gateway:\n  address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80\n\n  cluster:\n    options: \n      image:\
+        gateway: "gateway:\n  address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.{namespace}-{{ spawner.user.name }}.svc.cluster.local:80\n\n  cluster:\n    options: \n      image:\
           \ \"ghcr.io/fabricebrito/dev-platform-dask-gateway/worker:1.0.0\"\n      worker_cores: 0.5\n      worker_cores_limit: 1\n      worker_memory: \"4 G\"\n"
       kind: ConfigMap
       metadata:
@@ -644,7 +644,6 @@ profiles:
       kind: Role
       metadata:
         name: access-services
-        namespace: jupyter-{{ spawner.user.name }}
       rules:
       - apiGroups:
         - ''
@@ -673,7 +672,6 @@ profiles:
       kind: RoleBinding
       metadata:
         name: bind-default-to-services
-        namespace: jupyter-{{ spawner.user.name }}
       roleRef:
         apiGroup: rbac.authorization.k8s.io
         kind: Role
@@ -681,7 +679,6 @@ profiles:
       subjects:
       - kind: ServiceAccount
         name: default
-        namespace: jupyter-{{ spawner.user.name }}
     key: dask-gateway
     name: dask-gateway
     persist: false
@@ -690,7 +687,7 @@ profiles:
       kind: Pod
       metadata:
         name: kaniko-build
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{namespace}-{{ spawner.user.name }}'
       spec:
         containers:
         - command:
@@ -699,10 +696,10 @@ profiles:
           - sleep infinity
           image: gcr.io/kaniko-project/executor:debug
           name: kaniko
-          volume_mounts:
-          - mount_path: /calrissian
+          volumeMounts:
+          - mountPath: /calrissian
             name: build-context
-          - mount_path: /kaniko/.docker
+          - mountPath: /kaniko/.docker
             name: kaniko-secret
         restartPolicy: Never
         volumes:
@@ -719,7 +716,7 @@ profiles:
       kind: Role
       metadata:
         name: pod-exec
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{namespace}-{{ spawner.user.name }}'
       rules:
       - apiGroups:
         - ''
@@ -733,7 +730,7 @@ profiles:
       kind: RoleBinding
       metadata:
         name: bind-default-to-opd-exec
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{namespace}-{{ spawner.user.name }}'
       roleRef:
         apiGroup: rbac.authorization.k8s.io
         kind: Role
@@ -741,7 +738,7 @@ profiles:
       subjects:
       - kind: ServiceAccount
         name: default
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{namespace}-{{ spawner.user.name }}'
     key: kaniko
     name: kaniko
     persist: false
@@ -753,14 +750,14 @@ profiles:
     DASK_GATEWAY: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80
     HOME: /workspace
     XDG_RUNTIME_DIR: /workspace/.local
-  # role_bindings: null
+  role_bindings: null
   secret_mounts:
   - mount_path: /workspace/.aws
     name: aws-credentials-{{ spawner.user.name }}
-    # sub_path: null
+    sub_path: null
   - mount_path: /workspace/.data-by-name
     name: data-by-name
-    # sub_path: null
+    sub_path: null
   - mount_path: /workspace/.docker/config.json
     name: eoepca-plus-secret-ro
     sub_path: .dockerconfigjson

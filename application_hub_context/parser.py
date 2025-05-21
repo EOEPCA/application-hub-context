@@ -12,7 +12,7 @@ class ConfigParser:
         self.user_groups = user_groups
 
     @classmethod
-    def read_file(cls, config_path, user_groups, spawner):
+    def read_file(cls, config_path, user_groups, spawner, namespace):
         """reads a config file encoded in YAML"""
         with open(config_path, "r") as stream:
             try:
@@ -21,7 +21,8 @@ class ConfigParser:
                 
                 # Render the content as a Jinja2 template
                 template = Template(raw_content)
-                rendered_content = template.render(spawner=spawner)
+                rendered_content = template.render(spawner=spawner,
+                                                   namespace=namespace)
                 
                 # Parse the rendered content as YAML
                 config_data = yaml.safe_load(rendered_content)

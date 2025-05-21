@@ -449,15 +449,15 @@ data:
 # apiVersion: helm.crossplane.io/v1beta1
 # kind: Release
 # metadata:
-#   name: wordpress-jupyter-{{ spawner.user.name }}
-#   namespace: jupyter-{{ spawner.user.name }}
+#   name: wordpress-{namespace}-{{ spawner.user.name }}
+#   namespace: {namespace}-{{ spawner.user.name }}
 # spec:
 #   forProvider:
 #     chart:
 #       name: wordpress
 #       version: "24.1.4"
 #       repository: oci://registry-1.docker.io/bitnamicharts/
-#     namespace: jupyter-{{ spawner.user.name }}
+#     namespace: {namespace}-{{ spawner.user.name }}
 #     values:
 #       service:
 #         type: ClusterIP
@@ -468,7 +468,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: data-by-name
-  namespace: jupyter-{{ spawner.user.name }}
+  namespace: "{{ namespace }}"
 spec:
   refreshInterval: 15s
   secretStoreRef:
@@ -488,7 +488,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: eoepca-plus-secret-ro
-  namespace: jupyter-{{ spawner.user.name }}
+  namespace: "{{ namespace }}"
 spec:
   refreshInterval: 15s
   secretStoreRef:

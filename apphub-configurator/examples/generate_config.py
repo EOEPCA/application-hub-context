@@ -90,7 +90,7 @@ init_cm = load_init_script(init_cm_file_path)
 init_container = create_init_container(
     image=image,
     volume=workspace_volume,
-    mount_path="/calrissian",
+    mount_path="/workspace",
 )
 
 profile_1 = Profile(
