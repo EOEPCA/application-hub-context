@@ -21,7 +21,7 @@ RUN microdnf update -y && \
     && microdnf clean all
 
 # Installation of configurable-http-proxy via npm
-RUN npm install -g configurable-http-proxy
+RUN npm install -g configurable-http-proxy@4.5.3
 
 # User creation
 RUN adduser \
