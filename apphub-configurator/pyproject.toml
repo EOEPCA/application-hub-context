@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "apphub-configurator"
 dynamic = ["version"]
 description = "apphub-configurator"
-readme = "../docs/app-hub-configurator.md"
+readme = "../docs/configuration.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 keywords = ["kubernetes", "configuration", "EOEPCA"]
