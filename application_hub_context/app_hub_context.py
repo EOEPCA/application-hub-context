@@ -3,7 +3,7 @@ import time
 import yaml
 from abc import ABC
 from http import HTTPStatus
-from typing import Dict, TextIO
+from typing import Dict, Optional, TextIO
 from jinja2 import Template
 
 from kubernetes import client, config
@@ -304,13 +304,14 @@ class ApplicationHubContext(ABC):
         access_modes,
         size,
         storage_class,
+        annotations: Optional[Dict[str, str]] = None
     ):
         if self.is_pvc_created(name=name):
             return self.core_v1_api.read_namespaced_persistent_volume_claim(
                 name=name, namespace=self.namespace
             )
 
-        metadata = client.V1ObjectMeta(name=name, namespace=self.namespace)
+        metadata = client.V1ObjectMeta(name=name, namespace=self.namespace, annotations=annotations)
 
         spec = client.V1PersistentVolumeClaimSpec(
             access_modes=access_modes,
@@ -871,6 +872,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             access_modes=volume.access_modes,
                             size=volume.size,
                             storage_class=volume.storage_class,
+                            annotations=volume.annotations
                         )
                     self.spawner.log.info(
                         f"Mounting volume {volume.name} (claim {volume.claim_name}))"
