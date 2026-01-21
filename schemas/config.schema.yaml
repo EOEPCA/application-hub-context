@@ -1,5 +1,5 @@
-$schema: "https:/json-schema.org/draft/2020-12/schema"
-$id: "https:/www.terradue.com/eoap/v1/project.yaml"
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://www.terradue.com/eoap/v1/project.yaml"
 title: Config
 type: object
 properties:
