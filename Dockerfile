@@ -37,7 +37,7 @@ RUN usermod -aG wheel jovyan && \
 
 # Python packages installation from requirements.txt
 COPY requirements.txt /tmp/requirements.txt
-RUN pip3 install --upgrade --no-cache-dir setuptools pip
+# RUN pip3 install --upgrade --no-cache-dir setuptools pip
 
 # Specific Python dependencies installation
 RUN PYCURL_SSL_LIBRARY=openssl \
