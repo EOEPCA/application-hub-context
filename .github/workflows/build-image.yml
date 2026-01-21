@@ -7,27 +7,26 @@ on:
       - 'v*'
 
 jobs:
-  # ------------------------------------------------------------
-  # Resolve release tag from ref
-  # ------------------------------------------------------------
   release-meta:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
     steps:
+      - uses: actions/checkout@v4
+
       - id: meta
         run: |
           set -euo pipefail
+
           if [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
             TAG="latest-dev"
+
           elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             TAG="latest"
+
           elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             TAG="${GITHUB_REF#refs/tags/v}"
 
-            # --------------------------------------------------
-            # Validate against release.yaml
-            # --------------------------------------------------
             RELEASE_VERSION=$(yq -r '.image_version' release.yaml)
 
             if [[ -z "${RELEASE_VERSION}" || "${RELEASE_VERSION}" == "null" ]]; then
@@ -39,10 +38,12 @@ jobs:
               echo "Git tag v${TAG} does not match release.yaml version ${RELEASE_VERSION}"
               exit 1
             fi
+
           else
             echo "Unsupported ref ${GITHUB_REF}"
             exit 1
           fi
+
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
   # ------------------------------------------------------------
