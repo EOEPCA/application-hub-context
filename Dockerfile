@@ -20,7 +20,10 @@ RUN microdnf update -y && \
     postgresql-devel \
     && microdnf clean all
 
-# Installation of configurable-http-proxy via npm
+# Installation of configurable-http-proxy via npm.
+# NOTE: configurable-http-proxy is pinned to 4.5.3 to ensure compatibility and reproducible builds
+# with the current JupyterHub/base image setup. Review and test carefully before changing this
+# version, as upgrades may affect proxy behavior, compatibility, or security posture.
 RUN npm install -g configurable-http-proxy@4.5.3
 
 # User creation
