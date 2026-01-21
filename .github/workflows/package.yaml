@@ -1,19 +1,10 @@
-name: Publish to PyPI
+name: publish-to-pypi
 
 on:
   push:
-    branches: [develop, main, "patch-1" ]
-    paths:
-    - 'apphub-configurator/**'
-    - '.github/workflows/package.yaml'
-    
-  release:
-    types: [published]
-  pull_request:
-    branches: [develop, main]
-    paths:
-    - 'apphub-configurator/**'
-  
+    tags:
+      - 'v*'
+
     
 permissions:
   contents: read

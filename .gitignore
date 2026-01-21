@@ -12,3 +12,4 @@ hatch
 .project
 .settings
 .pydevproject
+.env*
