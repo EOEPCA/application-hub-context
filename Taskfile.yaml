@@ -1,0 +1,53 @@
+version: '3'
+
+tasks:
+
+  # schema
+
+  conditional-pip-install:
+    internal: true
+    status:
+    - command -v {{.COMMAND}}
+    cmds:
+    - pip install {{.COMMAND}}
+
+  check_schema:
+    desc: Executes a strict check of a configuration over the JSON schema
+    deps:
+    - task: conditional-pip-install
+      vars:
+        COMMAND: check-jsonschema
+    ignore_error: true
+    cmds:
+    - check-jsonschema --schemafile ./schemas/config.schema.yaml {{.CONFIG}}
+
+  check_schemas:
+    desc: Executes a strict check of a configurations set over the JSON schema
+    vars:
+      CONFIGS:
+      - './eoepca-demo/config.yml'
+      - './files/hub/config.yml'
+    cmds:
+    - for:
+        var: CONFIGS
+        as: CONFIG
+      task: check_schema
+      vars:
+        CONFIG: "{{.CONFIG}}"
+
+  # Python models
+
+  create_models:
+    desc: Generates the Pydantic models with field aliases
+    deps:
+    - task: conditional-pip-install
+      vars:
+        COMMAND: datamodel-codegen
+    cmds:
+    - |
+      datamodel-codegen  --input ./schemas/config.schema.yaml \
+                         --input-file-type jsonschema \
+                         --output-model-type pydantic_v2.BaseModel \
+                         --base-class pydantic.BaseModel \
+                         --snake-case-field \
+                         --output ./application_hub_context/models.py

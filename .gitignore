@@ -1,8 +1,15 @@
 *.pyc
+.pytest_cache
 __pycache__
 values.yaml
 *.egg-info
 build
 _README.md
 dist
-.env-config-generator
+.env-apphub-configurator
+hatch
+
+.project
+.settings
+.pydevproject
+.env*

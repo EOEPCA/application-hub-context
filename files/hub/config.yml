@@ -58,7 +58,7 @@ profiles:
       \n\n# >>> conda initialize >>>\n# !! Contents within this block are managed by 'conda init' !!\n__conda_setup=\"$('/opt/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"\nif [ $? -eq 0 ]; then\n\
       \    eval \"$__conda_setup\"\nelse\n    if [ -f \"/opt/conda/etc/profile.d/conda.sh\" ]; then\n        . \"/opt/conda/etc/profile.d/conda.sh\"\n    else\n        export PATH=\"/srv/conda/bin:$PATH\"\
       \n    fi\nfi\nunset __conda_setup\n\nif [ -f \"/opt/conda/etc/profile.d/mamba.sh\" ]; then\n    . \"/opt/conda/etc/profile.d/mamba.sh\"\nfi\n# <<< conda initialize <<<\n\na={{spawner.user.name}}\n\
-      \nalias aws=\"aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566\""
+      \nalias aws=\"aws --endpoint-url=http://localstack-jupyter-{{spawner.user.name}}:4566\"\n\nexport PATH=/workspace/.local/bin:$PATH"
     default_mode: null
     key: bash-rc
     mount_path: /workspace/.bashrc
@@ -75,7 +75,7 @@ profiles:
       cpu_limit: 2
       extra_resource_guarantees: {}
       extra_resource_limits: {}
-      image: eoepca/pde-code-server:develop
+      image: ghcr.io/eoepca/pde-code-server:latest-dev
       mem_guarantee: 4G
       mem_limit: 6G
     slug: profile_1
@@ -83,7 +83,6 @@ profiles:
   - my-config
   env_from_secrets:
   - my-secret
-  - data-by-name
   groups:
   - group-a
   - group-b
@@ -97,10 +96,10 @@ profiles:
     - sh
     - -c
     - sh /opt/init/.init.sh
-    image: eoepca/pde-code-server:develop
+    image: ghcr.io/eoepca/pde-code-server:latest-dev
     name: init-file-on-volume
     volume_mounts:
-    - mount_path: /calrissian
+    - mount_path: /workspace
       name: workspace-volume
     - mount_path: /opt/init/.init.sh
       name: init
@@ -563,7 +562,7 @@ profiles:
       kind: ExternalSecret
       metadata:
         name: data-by-name
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{{ namespace }}'
       spec:
         data:
         - remoteRef:
@@ -581,7 +580,7 @@ profiles:
       kind: ExternalSecret
       metadata:
         name: eoepca-plus-secret-ro
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{{ namespace }}'
       spec:
         data:
         - remoteRef:
@@ -603,14 +602,14 @@ profiles:
       kind: Release
       metadata:
         name: dask-gw-jupyter-{{ spawner.user.name }}
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{{ namespace }}'
       spec:
         forProvider:
           chart:
             name: dask-gateway
             repository: https://helm.dask.org
             version: 2024.1.0
-          namespace: jupyter-{{ spawner.user.name }}
+          namespace: '{{ namespace }}'
           values:
             gateway:
               backend:
@@ -628,14 +627,14 @@ profiles:
           name: helm-provider
     - apiVersion: v1
       data:
-        gateway: "gateway:\n  address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80\n\n  cluster:\n    options: \n      image:\
+        gateway: "gateway:\n  address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.{namespace}-{{ spawner.user.name }}.svc.cluster.local:80\n\n  cluster:\n    options: \n      image:\
           \ \"ghcr.io/fabricebrito/dev-platform-dask-gateway/worker:1.0.0\"\n      worker_cores: 0.5\n      worker_cores_limit: 1\n      worker_memory: \"4 G\"\n"
       kind: ConfigMap
       metadata:
         name: dask-gateway-config
     - apiVersion: v1
       data:
-        gateway: "gateway:\n  address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80\n\n  cluster:\n    options: \n      image:\
+        gateway: "gateway:\n  address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.{namespace}-{{ spawner.user.name }}.svc.cluster.local:80\n\n  cluster:\n    options: \n      image:\
           \ \"ghcr.io/fabricebrito/dev-platform-dask-gateway/worker:1.0.0\"\n      worker_cores: 0.5\n      worker_cores_limit: 1\n      worker_memory: \"4 G\"\n"
       kind: ConfigMap
       metadata:
@@ -644,7 +643,6 @@ profiles:
       kind: Role
       metadata:
         name: access-services
-        namespace: jupyter-{{ spawner.user.name }}
       rules:
       - apiGroups:
         - ''
@@ -673,7 +671,6 @@ profiles:
       kind: RoleBinding
       metadata:
         name: bind-default-to-services
-        namespace: jupyter-{{ spawner.user.name }}
       roleRef:
         apiGroup: rbac.authorization.k8s.io
         kind: Role
@@ -681,7 +678,6 @@ profiles:
       subjects:
       - kind: ServiceAccount
         name: default
-        namespace: jupyter-{{ spawner.user.name }}
     key: dask-gateway
     name: dask-gateway
     persist: false
@@ -690,7 +686,7 @@ profiles:
       kind: Pod
       metadata:
         name: kaniko-build
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{{ namespace }}'
       spec:
         containers:
         - command:
@@ -719,7 +715,7 @@ profiles:
       kind: Role
       metadata:
         name: pod-exec
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{{ namespace }}'
       rules:
       - apiGroups:
         - ''
@@ -733,7 +729,7 @@ profiles:
       kind: RoleBinding
       metadata:
         name: bind-default-to-opd-exec
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{{ namespace }}'
       roleRef:
         apiGroup: rbac.authorization.k8s.io
         kind: Role
@@ -741,7 +737,7 @@ profiles:
       subjects:
       - kind: ServiceAccount
         name: default
-        namespace: jupyter-{{ spawner.user.name }}
+        namespace: '{{ namespace }}'
     key: kaniko
     name: kaniko
     persist: false
@@ -758,15 +754,10 @@ profiles:
   - mount_path: /workspace/.aws
     name: aws-credentials-{{ spawner.user.name }}
     sub_path: null
-  - mount_path: /workspace/.data-by-name
-    name: data-by-name
-    sub_path: null
-  - mount_path: /workspace/.docker/config.json
-    name: eoepca-plus-secret-ro
-    sub_path: .dockerconfigjson
   volumes:
   - access_modes:
     - ReadWriteMany
+    annotations: null
     claim_name: calrissian-claim
     name: calrissian-volume
     persist: false
@@ -777,6 +768,7 @@ profiles:
       name: calrissian-volume
   - access_modes:
     - ReadWriteOnce
+    annotations: null
     claim_name: workspace-claim
     name: workspace-volume
     persist: true

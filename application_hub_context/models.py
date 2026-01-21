@@ -35,6 +35,7 @@ class Volume(BaseModel):
     access_modes: List[str]
     volume_mount: VolumeMount
     persist: bool
+    annotations: Optional[Dict[str, str]] = None
 
 
 class Manifest(BaseModel):

@@ -1,6 +1,6 @@
 jupyterhub
 values.yaml
 config.yml
-config-generator
+apphub-configurator
 skaffold.yaml
 files/*

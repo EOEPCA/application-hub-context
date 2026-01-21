@@ -1,6 +1,5 @@
 # Kubernetes configuration
-
-JupyterHub is configured to run the pods in a dedicated workspace.
+Kubernetes is an  orchestration platform that automates the deployment, scaling, and management of containerized applications. Through this tutorial kubernetes profiles can be deployed on a remote cluster. The user will configure JupyterHub to run the pods in a dedicated workspace.
 
 As such, a ClusterRole is needed with the manifest:
 

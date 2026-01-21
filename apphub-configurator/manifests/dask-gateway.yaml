@@ -2,14 +2,14 @@ apiVersion: helm.crossplane.io/v1beta1
 kind: Release
 metadata:
   name: dask-gw-jupyter-{{ spawner.user.name }}
-  namespace: jupyter-{{ spawner.user.name }}
+  namespace: "{{ namespace }}"
 spec:
   forProvider:
     chart:
       name: dask-gateway
       version: "2024.1.0"
       repository: https://helm.dask.org
-    namespace: jupyter-{{ spawner.user.name }}
+    namespace: "{{ namespace }}"
     values:
       gateway:
         backend:
@@ -39,7 +39,7 @@ metadata:
 data:
   gateway: |
     gateway:
-      address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80
+      address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.{namespace}-{{ spawner.user.name }}.svc.cluster.local:80
 
       cluster:
         options: 
@@ -55,7 +55,7 @@ metadata:
 data:
   gateway: |
     gateway:
-      address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.jupyter-{{ spawner.user.name }}.svc.cluster.local:80
+      address: http://traefik-dask-gw-jupyter-{{ spawner.user.name }}-dask-gateway.{namespace}-{{ spawner.user.name }}.svc.cluster.local:80
 
       cluster:
         options: 
@@ -68,7 +68,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
  name: access-services
- namespace: jupyter-{{ spawner.user.name }}
+ #namespace: jupyter-{{ spawner.user.name }}
 rules:
  - verbs:
      - get
@@ -98,11 +98,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
  name: bind-default-to-services
- namespace: jupyter-{{ spawner.user.name }}
+ #namespace: jupyter-{{ spawner.user.name }}
 subjects:
  - kind: ServiceAccount
    name: default
-   namespace: jupyter-{{ spawner.user.name }}
+   #namespace: jupyter-{{ spawner.user.name }}
 roleRef:
  apiGroup: rbac.authorization.k8s.io
  kind: Role

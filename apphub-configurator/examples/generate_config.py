@@ -1,8 +1,9 @@
-from models import *
+from apphub_configurator.models import *
 import yaml
+from pathlib import Path
 import os
 from loguru import logger
-from helpers import (
+from apphub_configurator.helpers import (
     load_config_map,
     load_manifests,
     create_init_container,
@@ -10,40 +11,43 @@ from helpers import (
 )
 import click
 
+logger.info("Generating config file...")
+
 storage_class_rwo = "standard"
 storage_class_rwx = "standard"
 profiles = []
 workspace_volume_size = "50Gi"
 calrissian_volume_size = "50Gi"
-image = "eoepca/pde-code-server:develop"
+image = "ghcr.io/eoepca/pde-code-server:latest-dev"
 node_selector = {}
 
 # get the current directory
-current_dir = os.path.dirname(os.path.realpath(__file__))
+current_dir = Path(os.path.dirname(os.path.realpath(__file__)))
+parent_dir = current_dir.parent
 
 # load the manifests
-
+localstack_manifest_path = os.path.join(parent_dir, "manifests/manifest.yaml") 
 # localstack_manifest
 localstack_manifest = load_manifests(
     name="localstack",
     key="localstack",
-    file_path=os.path.join(current_dir, "manifests/manifest.yaml"),
+    file_path=localstack_manifest_path,
 )
 
+dask_gateway_manifest_path = os.path.join(parent_dir, "manifests/dask-gateway.yaml") 
 # Dask Gateway manifest
 dask_gateway_manifest = load_manifests(
     name="dask-gateway",
     key="dask-gateway",
-    file_path=os.path.join(current_dir, "manifests/dask-gateway.yaml"),
+    file_path=dask_gateway_manifest_path,
 )
-
+kaniko_manifest_path = os.path.join(parent_dir, "manifests/kaniko.yaml") 
 kaniko_manifest = load_manifests(
     name="kaniko",
     key="kaniko",
-    file_path=os.path.join(current_dir, "manifests/kaniko.yaml"),
+    file_path=kaniko_manifest_path,
 )
 # volumes
-
 workspace_volume = Volume(
     name="workspace-volume",
     size=workspace_volume_size,
@@ -65,27 +69,28 @@ calrissian_volume = Volume(
     persist=False,
 )
 
-
+bash_login_file_path = os.path.join(parent_dir, "config-maps/bash-login") 
 bash_login_cm = load_config_map(
     name="bash-login",
     key="bash-login",
-    file_name=os.path.join(current_dir, "config-maps/bash-login"),
+    file_name=bash_login_file_path,
     mount_path="/etc/profile.d/bash-login.sh",
 )
 
+bash_rc_cm_file_path = os.path.join(parent_dir, "config-maps/bash-rc") 
 bash_rc_cm = load_config_map(
     name="bash-rc",
     key="bash-rc",
-    file_name=os.path.join(current_dir, "config-maps/bash-rc"),
+    file_name=bash_rc_cm_file_path,
     mount_path="/workspace/.bashrc",
 )
-
-init_cm = load_init_script(os.path.join(current_dir, "config-maps/init.sh"))
+init_cm_file_path = os.path.join(parent_dir, "config-maps/init.sh") 
+init_cm = load_init_script(init_cm_file_path)
 
 init_container = create_init_container(
     image=image,
     volume=workspace_volume,
-    mount_path="/calrissian",
+    mount_path="/workspace",
 )
 
 profile_1 = Profile(
@@ -134,17 +139,17 @@ profile_1 = Profile(
     init_containers=[init_container],
     manifests=[localstack_manifest, dask_gateway_manifest, kaniko_manifest],
     env_from_config_maps=["my-config"],
-    env_from_secrets=["my-secret", "data-by-name"],
+    env_from_secrets=["my-secret"], #, "data-by-name"],
     secret_mounts=[
         SecretMount(
             name="aws-credentials-{{ spawner.user.name }}", mount_path="/workspace/.aws"
         ),
-        SecretMount(name="data-by-name", mount_path="/workspace/.data-by-name"),
-        SecretMount(
-            name="eoepca-plus-secret-ro",
-            mount_path="/workspace/.docker/config.json",
-            sub_path=".dockerconfigjson",
-        ),
+        # SecretMount(name="data-by-name", mount_path="/workspace/.data-by-name"),
+        # SecretMount(
+        #     name="eoepca-plus-secret-ro",
+        #     mount_path="/workspace/.docker/config.json",
+        #     sub_path=".dockerconfigjson",
+        # ),
     ],
     image_pull_secrets=[ImagePullSecret(name="eoepca-plus-secret-ro")],
 )
@@ -152,6 +157,12 @@ profile_1 = Profile(
 profiles.append(profile_1)
 
 config = Config(profiles=profiles)
+config_file_path = str(Path(current_dir).parent.parent / 'files' / 'hub' / 'config.yml')
 
-with open("files/hub/config.yml", "w") as file:
+
+with open(config_file_path, "w") as file:
     yaml.dump(config.dict(), file, width=200)
+
+logger.success(
+    f"Config file generated successfully at {config_file_path}"
+)

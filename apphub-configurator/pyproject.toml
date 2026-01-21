@@ -6,12 +6,12 @@ build-backend = "hatchling.build"
 name = "apphub-configurator"
 dynamic = ["version"]
 description = "apphub-configurator"
-readme = "README.md"
+readme = "../docs/README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 keywords = ["kubernetes", "configuration", "EOEPCA"]
 authors = [
-    { name = "Parham Membari", email = "parham.membari@terradue.com" }
+    { name = "Terradue", email = "info@terradue.com" }
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -21,13 +21,13 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
-dependencies = ["pydantic", "pyyaml"]
+dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/EOEPCA/application-hub-context/tree/ESAEOEPCA-236/config-generator/apphub-configurator#readme"
+Documentation = "https://github.com/EOEPCA/application-hub-context/apphub-configurator/apphub-configurator#readme"
 Issues = "https://github.com/EOEPCA/application-hub-context/issues"
-Source = "https://github.com/EOEPCA/application-hub-context/tree/ESAEOEPCA-236/config-generator/apphub-configurator"
-Examples = "https://github.com/EOEPCA/application-hub-context/tree/ESAEOEPCA-236/config-generator/apphub-configurator/examples"
+Source = "https://github.com/EOEPCA/application-hub-context/apphub-configurator/apphub-configurator"
+Examples = "https://github.com/EOEPCA/application-hub-context/apphub-configurator/examples"
 
 [tool.hatch.version]
 path = "src/apphub_configurator/__about__.py"
@@ -37,9 +37,25 @@ allow-direct-references = true
 
 [tool.hatch.build]
 packages = ["src/apphub_configurator"]
+examples = ["examples"]
+
 
 [tool.hatch.envs.default]
-dependencies = ["pytest", "pytest-cov"]
+path = "hatch/envs/apphub_configurator"
+[tool.hatch.envs.prod]
+path = "hatch/envs/apphub_configurator"
+dependencies = ["pytest",
+                "pytest-cov",
+                "pydantic<2.0.0", 
+                "pyyaml", 
+                "ipykernel", 
+                "jupyter",
+                "loguru",
+                "click",
+                ]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.10", "3.11", "3.12"]
 
 # Coverage settings
 [tool.coverage.run]

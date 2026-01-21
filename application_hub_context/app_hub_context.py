@@ -3,7 +3,7 @@ import time
 import yaml
 from abc import ABC
 from http import HTTPStatus
-from typing import Dict, TextIO
+from typing import Dict, Optional, TextIO
 from jinja2 import Template
 
 from kubernetes import client, config
@@ -50,7 +50,7 @@ class ApplicationHubContext(ABC):
 
         # loads config
         self.config_parser = ConfigParser.read_file(
-            config_path=config_path, user_groups=self.user_groups, spawner=self.spawner
+            config_path=config_path, user_groups=self.user_groups, spawner=self.spawner, namespace=self.namespace
         )
 
         # update class dict with kwargs
@@ -304,13 +304,14 @@ class ApplicationHubContext(ABC):
         access_modes,
         size,
         storage_class,
+        annotations: Optional[Dict[str, str]] = None
     ):
         if self.is_pvc_created(name=name):
             return self.core_v1_api.read_namespaced_persistent_volume_claim(
                 name=name, namespace=self.namespace
             )
 
-        metadata = client.V1ObjectMeta(name=name, namespace=self.namespace)
+        metadata = client.V1ObjectMeta(name=name, namespace=self.namespace, annotations=annotations)
 
         spec = client.V1PersistentVolumeClaimSpec(
             access_modes=access_modes,
@@ -546,7 +547,8 @@ class ApplicationHubContext(ABC):
     def apply_manifest(self, manifest):
 
         template = Template(yaml.dump(manifest))
-        rendered_manifest = template.render(spawner=self.spawner)
+        rendered_manifest = template.render(spawner=self.spawner,
+                                            namespace=self.namespace)
         
         self.spawner.log.info(f"Applying manifest name: {yaml.safe_load(rendered_manifest).get('metadata').get('name')}")
 
@@ -587,7 +589,7 @@ class ApplicationHubContext(ABC):
             # Define the ExternalSecret details
             group = "external-secrets.io"  
             version = "v1beta1"          
-            namespace = f"jupyter-{self.spawner.user.name}"       
+            namespace = self.namespace       
             plural = "externalsecrets"
 
             self.custom_objects_api.create_namespaced_custom_object(
@@ -870,6 +872,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
                             access_modes=volume.access_modes,
                             size=volume.size,
                             storage_class=volume.storage_class,
+                            annotations=volume.annotations
                         )
                     self.spawner.log.info(
                         f"Mounting volume {volume.name} (claim {volume.claim_name}))"

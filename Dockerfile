@@ -17,10 +17,14 @@ RUN microdnf update -y && \
     gcc \
     libcurl-devel \
     openssl-devel \
+    postgresql-devel \
     && microdnf clean all
 
-# Installation of configurable-http-proxy via npm
-RUN npm install -g configurable-http-proxy
+# Installation of configurable-http-proxy via npm.
+# NOTE: configurable-http-proxy is pinned to 4.5.3 to ensure compatibility and reproducible builds
+# with the current JupyterHub/base image setup. Review and test carefully before changing this
+# version, as upgrades may affect proxy behavior, compatibility, or security posture.
+RUN npm install -g configurable-http-proxy@4.5.3
 
 # User creation
 RUN adduser \
@@ -36,11 +40,12 @@ RUN usermod -aG wheel jovyan && \
 
 # Python packages installation from requirements.txt
 COPY requirements.txt /tmp/requirements.txt
-RUN pip3 install --upgrade --no-cache-dir setuptools pip
 
 # Specific Python dependencies installation
 RUN PYCURL_SSL_LIBRARY=openssl \
-    pip install --no-cache-dir -r /tmp/requirements.txt
+    pip install --no-cache-dir -r /tmp/requirements.txt &&\
+    pip install --no-cache-dir "tornado==6.5.0"
+
 
 # Check and correct requirejs version
 RUN sed -i 's/"version": "[^"]*"/"version": "2.3.7"/' /usr/local/share/jupyterhub/static/components/requirejs/package.json

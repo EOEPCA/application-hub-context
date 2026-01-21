@@ -4,40 +4,39 @@ build:
   artifacts:
     - image: hubimage
 
-profiles:
-  - name: minikube
-    deploy:
-      helm:
-        releases:
-          - name: jupyterhub
-            remoteChart: eoepca/application-hub
-            namespace: jupyter
-            version: 4.0.1
-            createNamespace: true
-            valuesFiles: []
-            setValueTemplates:
-              jupyterhub.hub.image.name: "{{.IMAGE_REPO_hubimage}}"
-              jupyterhub.hub.image.tag: "{{.IMAGE_TAG_hubimage}}@{{.IMAGE_DIGEST_hubimage}}"
-            setValues:
-              jupyterhub.hub.image.pullSecrets: []
-              jupyterhub.hub.db.pvc.storageClassName: standard
-              jupyterhub.hub.extraEnv.STORAGE_CLASS: standard
-              jupyterhub.proxy.secretToken: "032d5bfe141a7eab86d57587879b33c5d168617cacb339823d7f47fe2933f880"
-              jupyterhub.hub.extraEnv.APP_HUB_NAMESPACE: jupyter
-              jupyterhub.hub.networkPolicy.enabled: false
-            setFiles:
-              configYml: ./files/hub/config.yml
-              jupyterConfig: ./files/hub/jupyterhub_config.py
-        hooks:
-          before:
-            - host:
-                command: ["sh", "-c", "config-generator/generate-config.sh"]
-                os: [darwin, linux]
-    manifests:
-      rawYaml:
-      - sk-k8s/cluster-role-binding.yaml
-      - sk-k8s/script.yaml
-      - sk-k8s/job.yaml
+
+deploy:
+  helm:
+    releases:
+      - name: jupyterhub
+        remoteChart: eoepca/application-hub
+        namespace: jupyter
+        version: 4.0.1
+        createNamespace: true
+        valuesFiles: []
+        setValueTemplates:
+          jupyterhub.hub.image.name: "{{.IMAGE_REPO_hubimage}}"
+          jupyterhub.hub.image.tag: "{{.IMAGE_TAG_hubimage}}@{{.IMAGE_DIGEST_hubimage}}"
+        setValues:
+          jupyterhub.hub.image.pullSecrets: []
+          jupyterhub.hub.db.pvc.storageClassName: standard
+          jupyterhub.hub.extraEnv.STORAGE_CLASS: standard
+          jupyterhub.proxy.secretToken: "032d5bfe141a7eab86d57587879b33c5d168617cacb339823d7f47fe2933f880"
+          jupyterhub.hub.extraEnv.APP_HUB_NAMESPACE: jupyter
+          jupyterhub.hub.networkPolicy.enabled: false
+        setFiles:
+          configYml: ./files/hub/config.yml
+          jupyterConfig: ./files/hub/jupyterhub_config.py
+    hooks:
+      before:
+        - host:
+            command: ["sh", "-c", "apphub-configurator/examples/generate-config.sh"]
+            os: [darwin, linux]
+manifests:
+  rawYaml:
+  - sk-k8s/cluster-role-binding.yaml
+  - sk-k8s/script.yaml
+  - sk-k8s/job.yaml
 
 portForward:
 - resourceType: service
@@ -45,3 +44,25 @@ portForward:
   namespace: jupyter # Optional, if you are using a specific namespace
   port: 80 # Target port on the pod
   localPort: 8000 # Local port on your machine
+
+profiles:
+
+  - name: develop
+
+    patches:
+      - op: add
+        path: /deploy/helm/releases/0/setValueTemplates/jupyterhub.hub.image.name
+        value: ghcr.io/eoepca/application-hub
+      - op: add
+        path: /deploy/helm/releases/0/setValueTemplates/jupyterhub.hub.image.tag
+        value: latest-dev
+
+  - name: main
+  
+    patches:
+      - op: add
+        path: /deploy/helm/releases/0/setValueTemplates/jupyterhub.hub.image.name
+        value: ghcr.io/eoepca/application-hub
+      - op: add
+        path: /deploy/helm/releases/0/setValueTemplates/jupyterhub.hub.image.tag
+        value: latest
