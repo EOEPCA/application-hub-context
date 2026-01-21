@@ -11,7 +11,7 @@ deploy:
       - name: jupyterhub
         remoteChart: eoepca/application-hub
         namespace: jupyter
-        version: 4.0.1
+        version: 4.0.2
         createNamespace: true
         valuesFiles: []
         setValueTemplates:
@@ -66,3 +66,10 @@ profiles:
       - op: add
         path: /deploy/helm/releases/0/setValueTemplates/jupyterhub.hub.image.tag
         value: latest
+
+  - name: custom
+
+    patches:
+      - op: add
+        path: /deploy/helm/releases/0/setFiles/configYml
+        value: custom-config.yml
