@@ -46,7 +46,7 @@ path = "hatch/envs/apphub_configurator"
 path = "hatch/envs/apphub_configurator"
 dependencies = ["pytest",
                 "pytest-cov",
-                "pydantic", 
+                "pydantic<2.0.0", 
                 "pyyaml", 
                 "ipykernel", 
                 "jupyter",

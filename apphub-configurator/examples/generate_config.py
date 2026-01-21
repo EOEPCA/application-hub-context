@@ -18,7 +18,7 @@ storage_class_rwx = "standard"
 profiles = []
 workspace_volume_size = "50Gi"
 calrissian_volume_size = "50Gi"
-image = "eoepca/pde-code-server:develop"
+image = "ghcr.io/eoepca/pde-code-server:latest-dev"
 node_selector = {}
 
 # get the current directory
@@ -139,17 +139,17 @@ profile_1 = Profile(
     init_containers=[init_container],
     manifests=[localstack_manifest, dask_gateway_manifest, kaniko_manifest],
     env_from_config_maps=["my-config"],
-    env_from_secrets=["my-secret", "data-by-name"],
+    env_from_secrets=["my-secret"], #, "data-by-name"],
     secret_mounts=[
         SecretMount(
             name="aws-credentials-{{ spawner.user.name }}", mount_path="/workspace/.aws"
         ),
-        SecretMount(name="data-by-name", mount_path="/workspace/.data-by-name"),
-        SecretMount(
-            name="eoepca-plus-secret-ro",
-            mount_path="/workspace/.docker/config.json",
-            sub_path=".dockerconfigjson",
-        ),
+        # SecretMount(name="data-by-name", mount_path="/workspace/.data-by-name"),
+        # SecretMount(
+        #     name="eoepca-plus-secret-ro",
+        #     mount_path="/workspace/.docker/config.json",
+        #     sub_path=".dockerconfigjson",
+        # ),
     ],
     image_pull_secrets=[ImagePullSecret(name="eoepca-plus-secret-ro")],
 )
@@ -161,7 +161,7 @@ config_file_path = str(Path(current_dir).parent.parent / 'files' / 'hub' / 'conf
 
 
 with open(config_file_path, "w") as file:
-    yaml.dump(config.model_dump(), file, width=200)
+    yaml.dump(config.dict(), file, width=200)
 
 logger.success(
     f"Config file generated successfully at {config_file_path}"

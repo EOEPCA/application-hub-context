@@ -1,4 +1,4 @@
-#exit 0
+set -x
 export PYTHONPATH=$PWD/`dirname $0`/.
 
-.env-apphub-configurator/bin/python3 -m generate_config 
+python3 -m generate_config 
