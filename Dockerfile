@@ -1,4 +1,4 @@
-FROM ghcr.io/eoepca/container-k8s-hub/container-k8s-hub:4.0.0
+FROM ghcr.io/eoepca/container-k8s-hub:4.0.0
 
 ARG NB_USER=johub
 ARG NB_UID=1001
