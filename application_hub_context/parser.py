@@ -12,25 +12,46 @@ class ConfigParser:
         self.user_groups = user_groups
 
     @classmethod
+    def _render_templates(cls, obj, context):
+        """Recursively render Jinja templates in strings only."""
+        if isinstance(obj, str):
+            if "{{" in obj:
+                return Template(obj).render(**context)
+            return obj
+
+        if isinstance(obj, list):
+            return [cls._render_templates(i, context) for i in obj]
+
+        if isinstance(obj, dict):
+            return {
+                k: cls._render_templates(v, context)
+                for k, v in obj.items()
+            }
+
+        return obj
+
+    @classmethod
     def read_file(cls, config_path, user_groups, spawner, namespace):
-        """reads a config file encoded in YAML"""
         with open(config_path, "r") as stream:
-            try:
-                # Read the file as a raw string
-                raw_content = stream.read()
-                
-                # Render the content as a Jinja2 template
-                template = Template(raw_content)
-                rendered_content = template.render(spawner=spawner,
-                                                   namespace=namespace)
-                
-                # Parse the rendered content as YAML
-                config_data = yaml.safe_load(rendered_content)
-    
-            except yaml.YAMLError as exc:
-                print(f"YAML Error: {exc}")
-            except Exception as e:
-                print(f"Error: {e}")
+            raw_content = stream.read()
+
+        try:
+            # Parse YAML first (SAFE)
+            config_data = yaml.safe_load(raw_content)
+
+            # Render templates selectively
+            context = {
+                "spawner": spawner,
+                "namespace": namespace,
+            }
+            config_data = cls._render_templates(config_data, context)
+
+        except yaml.YAMLError as exc:
+            raise RuntimeError(f"Invalid YAML in {config_path}: {exc}") from exc
+        except Exception as exc:
+            raise RuntimeError(
+                f"Error processing config file {config_path}: {exc}"
+            ) from exc
 
         return cls(config_data=config_data, user_groups=user_groups)
 
