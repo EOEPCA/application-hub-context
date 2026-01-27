@@ -377,7 +377,7 @@ class ApplicationHubContext(ABC):
                 f"Exception deleting role {role_binding.role.name}: {e}\n"
             )
 
-    def create_role_binding(self, name: str, subjects: [Subject], role: Role):
+    def create_role_binding(self, name: str, subjects: list[Subject], role: Role):
         if self.is_role_binding_created(name=name):
             return self.rbac_authorization_v1_api.read_namespaced_role_binding(
                 name=name, namespace=self.namespace
@@ -385,16 +385,15 @@ class ApplicationHubContext(ABC):
 
         metadata = client.V1ObjectMeta(name=name, namespace=self.namespace)
 
-        role_ref = client.V1RoleRef(api_group="", kind="Role", name=role.name)
+        role_ref = client.V1RoleRef(api_group="rbac.authorization.k8s.io", kind="Role", name=role.name)
 
         subject_list = []
         for subject in subjects:
-            subject = client.models.V1Subject(
-                api_group="",
-                kind=subject.kind.value,
-                name=subject.name,
-                namespace=self.namespace,
-            )
+            subject = {
+                "kind": subject.kind.value,
+                "name": subject.name,
+                "namespace": self.namespace,
+            }
             subject_list.append(subject)
 
         body = client.V1RoleBinding(
@@ -1024,7 +1023,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             )
             self.spawner.log.info(f"env_from_secrets {env_from_secrets}")
             if env_from_secrets:
-                if self.spawner.extra_container_config["env_from"] is None:
+                if self.spawner.extra_container_config.get("env_from") is None:
                     self.spawner.extra_container_config["env_from"] = []
 
                 for env_from_secret in env_from_secrets:
