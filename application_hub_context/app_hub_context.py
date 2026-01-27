@@ -1023,7 +1023,7 @@ class DefaultApplicationHubContext(ApplicationHubContext):
             )
             self.spawner.log.info(f"env_from_secrets {env_from_secrets}")
             if env_from_secrets:
-                if self.spawner.extra_container_config["env_from"] is None:
+                if self.spawner.extra_container_config.get("env_from") is None:
                     self.spawner.extra_container_config["env_from"] = []
 
                 for env_from_secret in env_from_secrets:
