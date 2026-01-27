@@ -389,11 +389,11 @@ class ApplicationHubContext(ABC):
 
         subject_list = []
         for subject in subjects:
-            subject = client.models.V1RoleBindingSubject(
-                kind=subject.kind.value,
-                name=subject.name,
-                namespace=self.namespace,
-            )
+            subject = {
+                "kind": subject.kind.value,
+                "name": subject.name,
+                "namespace": self.namespace,
+            }
             subject_list.append(subject)
 
         body = client.V1RoleBinding(
