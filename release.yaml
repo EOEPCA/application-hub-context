@@ -1,4 +1,4 @@
 image_name: application-hub
 image_prefix: eoepca
-image_version: 1.5.3
+image_version: 1.5.2
 image_registry: ghcr.io
