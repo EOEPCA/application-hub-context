@@ -377,7 +377,7 @@ class ApplicationHubContext(ABC):
                 f"Exception deleting role {role_binding.role.name}: {e}\n"
             )
 
-    def create_role_binding(self, name: str, subjects: [Subject], role: Role):
+    def create_role_binding(self, name: str, subjects: list[Subject], role: Role):
         if self.is_role_binding_created(name=name):
             return self.rbac_authorization_v1_api.read_namespaced_role_binding(
                 name=name, namespace=self.namespace
@@ -385,12 +385,11 @@ class ApplicationHubContext(ABC):
 
         metadata = client.V1ObjectMeta(name=name, namespace=self.namespace)
 
-        role_ref = client.V1RoleRef(api_group="", kind="Role", name=role.name)
+        role_ref = client.V1RoleRef(api_group="rbac.authorization.k8s.io", kind="Role", name=role.name)
 
         subject_list = []
         for subject in subjects:
-            subject = client.models.V1Subject(
-                api_group="",
+            subject = client.models.V1RoleBindingSubject(
                 kind=subject.kind.value,
                 name=subject.name,
                 namespace=self.namespace,
