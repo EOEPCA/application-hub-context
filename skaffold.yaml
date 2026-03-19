@@ -27,11 +27,6 @@ deploy:
         setFiles:
           configYml: ./files/hub/config.yml
           jupyterConfig: ./files/hub/jupyterhub_config.py
-    hooks:
-      before:
-        - host:
-            command: ["sh", "-c", "apphub-configurator/examples/generate-config.sh"]
-            os: [darwin, linux]
 manifests:
   rawYaml:
   - sk-k8s/cluster-role-binding.yaml

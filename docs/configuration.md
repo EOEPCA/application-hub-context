@@ -7,9 +7,19 @@ In the Application Hub, configuration is vital for defining Kubernetes objects t
 Developing Kubernetes manifests or configuring the cluster using YAML files can be challenging and prone to errors. To simplify this process, a Python-based configuration generator can be used to produce clean, well-structured YAML files. This reduces the risk of misconfiguration and improves maintainability.
 Users can programmatically define and customize various Kubernetes resources(e.g.**Pods**, **Volumes**, and **ConfigMaps**), well as handling the **External Secrets Operator**, define **profiles**, and manage **Helm releases**. This approach offers flexibility and empowers users to tailor deployments to their specific requirements.
 
-## Apphub-configurator
+## App-hub-configurator
 
 The Configuration Generator is a Python module designed to facilitate the creation of configuration files for Application Hub deployments. It offers various utilities to streamline the configuration process.
+
+### Project location and compatibility
+
+The configurator package is managed outside this repository:
+
+- PyPI: [https://pypi.org/project/app-hub-configurator/](https://pypi.org/project/app-hub-configurator/)
+- Docs and examples: [https://eoepca.github.io/app-hub-configurator/](https://eoepca.github.io/app-hub-configurator/)
+
+When upgrading, validate compatibility between your `application-hub-context` release and the generated `config.yaml` structure before deploying to shared environments.
+
 ### Python utilities:
 - **`load_config_map(name, key, file_name, mount_path)`**: Reads a specified file and returns a `ConfigMap` object with the file's content, intended for use within Kubernetes configurations.
 
@@ -66,7 +76,7 @@ The module defines several Pydantic-based data classes representing Kubernetes o
 These data classes provide a structured approach to defining Kubernetes resources.
 
 ### Examples: 
-The user can follow the examples provided to setup different profiles on Application Hub through the provided [notebook](./config-generator.ipynb) under example folder. In the notebook, the user is able to configure different profile including:
+The user can follow examples to setup different profiles on Application Hub in the dedicated documentation: [https://eoepca.github.io/app-hub-configurator/](https://eoepca.github.io/app-hub-configurator/). The examples cover profiles including:
 
 * Coder
 
@@ -82,7 +92,7 @@ The user can follow the examples provided to setup different profiles on Applica
 
 ### Output format:
 
-The `apphub-configurator` package generates a `config.yaml` file to define various profiles for your application deployment. Each profile includes several key attributes that need to be configured:
+The `app-hub-configurator` package generates a `config.yaml` file to define various profiles for your application deployment. Each profile includes several key attributes that need to be configured:
 
 - **id**: the profile identifier of your app 
 - **groups**: the group list containing the users groups that can use the declared app 
