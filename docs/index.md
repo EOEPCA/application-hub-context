@@ -2,6 +2,13 @@
 
 The Application Hub provides a unified Cloud infrastructure to manage and deliver work environments and tools for a variety of user tasks. These tasks include developing, hosting, executing, and performing exploratory analysis of Earth Observation (EO) applications. The hub simplifies the management of these tasks within a single, cohesive platform. 
 
+## Configurator Migration
+
+The configurator is no longer maintained in this repository. Use the external project:
+
+- Package: [https://pypi.org/project/app-hub-configurator/](https://pypi.org/project/app-hub-configurator/)
+- Documentation: [https://eoepca.github.io/app-hub-configurator/](https://eoepca.github.io/app-hub-configurator/)
+
 ## Configuration Overview
 
 There are many approach for deployment and one of them is using python based approach. Indeed, the user can generate, and apply the kubernetes objects using python instead of old-fashion approaches. In this tutorial, the user will configure The Application Hub using a Python script, [`jupyterhub_config.py`](../files/hub/jupyterhub_config.py). It customizes Application Hub's behavior by defining hooks, authentication, spawner settings, and other configurations.

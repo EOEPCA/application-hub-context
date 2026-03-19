@@ -1,7 +1,7 @@
-# apphub-configurator
+# app-hub-configurator
 
-[![PyPI - Version](https://img.shields.io/pypi/v/apphub-configurator.svg)](https://pypi.org/project/apphub-configurator)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/apphub-configurator.svg)](https://pypi.org/project/apphub-configurator)
+[![PyPI - Version](https://img.shields.io/pypi/v/app-hub-configurator.svg)](https://pypi.org/project/app-hub-configurator/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/app-hub-configurator.svg)](https://pypi.org/project/app-hub-configurator/)
 
 -----
 
@@ -15,18 +15,18 @@
 ## Installation
 
 ```console
-pip install apphub-configurator
+pip install app-hub-configurator
 ```
 ## Overview
 This package contains a notebook and the python modules to support the generation of ApplicationHub configurations for a minikube cluster. For more information about ApplicationHub please check this [link](https://github.com/EOEPCA/application-hub-context)
 
 ## Examples:
 
-Find more examples if you need from this [link](https://github.com/EOEPCA/application-hub-context/tree/ESAEOEPCA-236/config-generator/apphub-configurator/examples)
+Find more examples in the official documentation website: [https://eoepca.github.io/app-hub-configurator/](https://eoepca.github.io/app-hub-configurator/)
 
 ### Step 1: Setup the environment
 
-To begin using the `apphub-configurator` package, import the required functions from the package:
+To begin using the `app-hub-configurator` package, import the required functions from the package:
 
 ```python
 from apphub_configurator.helpers import load_config_map, load_manifests, create_init_container, load_init_script
@@ -119,4 +119,4 @@ Here is an overview of the functions and how to use them to generate configurati
 
 ## License
 
-`apphub-configurator` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+`app-hub-configurator` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
