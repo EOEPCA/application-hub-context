@@ -587,7 +587,7 @@ class ApplicationHubContext(ABC):
             self.spawner.log.info(f"Creating ExternalSecret {yaml.safe_load(rendered_manifest).get('metadata').get('name')} in namespace {self.namespace}")
             # Define the ExternalSecret details
             group = "external-secrets.io"  
-            version = "v1beta1"          
+            version = "v1"          
             namespace = self.namespace       
             plural = "externalsecrets"
 
@@ -672,7 +672,7 @@ class ApplicationHubContext(ABC):
                     self.spawner.log.info(f"Deleting ExternalSecret {name} from namespace {namespace}")
                     self.custom_objects_api.delete_namespaced_custom_object(
                         group="external-secrets.io",
-                        version="v1beta1",
+                        version="v1",
                         namespace=namespace,
                         plural="externalsecrets",
                         name=name,
