@@ -1,5 +1,5 @@
-import os
 import unittest
+from unittest.mock import patch
 
 from addict import Dict
 from kubernetes import client
@@ -43,7 +43,14 @@ spawner.profile_list = [
 class TestK8s(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        os.environ["KUBECONFIG"] = "/home/mambauser/.kube/kubeconfig-t2-dev.yaml"
+        api_client = client.ApiClient(client.Configuration(host="https://kubernetes.invalid"))
+        cls.addClassCleanup(api_client.close)
+        patcher = patch(
+            "application_hub_context.app_hub_context.ApplicationHubContext._get_api_client",
+            return_value=api_client,
+        )
+        patcher.start()
+        cls.addClassCleanup(patcher.stop)
 
         cls.app_hub_context = DefaultApplicationHubContext(
             namespace="a_namespace",
@@ -67,5 +74,5 @@ class TestK8s(unittest.TestCase):
     def test_rbac(self):
         self.assertIsInstance(
             self.app_hub_context._get_rbac_authorization_v1_api(),
-            client.RbacAuthorizationApi,
+            client.RbacAuthorizationV1Api,
         )

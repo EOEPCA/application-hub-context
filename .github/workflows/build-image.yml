@@ -7,6 +7,9 @@ on:
       - 'v*'
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   release-meta:
     runs-on: ubuntu-latest
     outputs:
@@ -50,7 +53,7 @@ jobs:
   # Build, scan, SBOM, push
   # ------------------------------------------------------------
   build-scan-push:
-    needs: release-meta
+    needs: [release-meta, tests]
     runs-on: ubuntu-latest
 
     steps:
@@ -88,12 +91,13 @@ jobs:
             --dockerfile Dockerfile
             --no-push
             --tar-path image.tar
+            --cache=false
 
       # --------------------------------------------------------
-      # Trivy scan (relaxed for now)
+      # Trivy scan (block high and critical findings)
       # --------------------------------------------------------
-      - name: Trivy scan (debug mode)
-        uses: docker://aquasec/trivy:0.50.2
+      - name: Trivy scan (high and critical)
+        uses: docker://aquasec/trivy:0.76.1
         env:
           TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db
         with:
@@ -101,11 +105,11 @@ jobs:
             image
             --input image.tar
             --severity HIGH,CRITICAL
-            --exit-code 0
+            --exit-code 1
             --no-progress
 
       - name: Generate SBOM (SPDX JSON)
-        uses: docker://aquasec/trivy:0.50.2
+        uses: docker://aquasec/trivy:0.76.1
         env:
           TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db
         with:

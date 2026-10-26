@@ -1,12 +1,42 @@
 # Changelog
 
-Notable changes to ApplicationHub Context, reconstructed from Git history through
-`2222bcf` (2026-09-30). Release sections use the tags available in this repository;
-dates are the tagged commits' dates. Changes between tags are consolidated, including
-intermediate version bumps without corresponding tags. Merge and squash duplicates
-are omitted. Tags `1.5.0` and `v1.5.0` identify the same commit.
+Historical entries through 1.5.2 were reconstructed from Git history and
+available release tags. Changes between tags are consolidated, including
+intermediate version bumps without corresponding tags. Tags `1.5.0` and `v1.5.0`
+identify the same commit.
 
 ## [Unreleased]
+
+## [2.0.0]
+
+### Security
+
+- Use the patched container-k8s-hub 5.0.0 base, updated operating system trust,
+  and uv with system certificates. Remove pip from the final application image.
+- Upgrade vulnerable inherited Python dependencies and replace bundled Moment.js
+  with the complete patched 2.31.0 package. Enforce dependency security minimums.
+- Disable image layer caching in CI and block high or critical Trivy findings.
+
+### Packaging and tests
+
+- Replace setup.py/setup.cfg with Hatchling metadata and declare dependencies in
+  pyproject.toml. Align Python package and image versions at 2.0.0.
+- Add a uv-backed Hatch dev environment. Run all 34 tests without a Kubernetes
+  cluster and gate CI image builds on the test suite.
+- Use uv for documentation and schema tooling, and enable daily Dependabot checks.
+
+### Upgrade notes
+
+- Use `ghcr.io/eoepca/application-hub:2.0.0` after publication. Rebuild downstream
+  images without layer caching and redeploy existing running services.
+- Python packages and JupyterHub assets now live under `/opt/hub-venv`. Use
+  `uv pip install --python /opt/hub-venv/bin/python3` for downstream installations;
+  pip and its seed wheel are absent from the runtime image.
+- The image uses Rocky Linux 10.2, JupyterHub 5.5.0, and Python 3.12. Review
+  downstream authentication configuration before production rollout.
+- External Secrets deployments must serve `external-secrets.io/v1`; use the
+  standalone App Hub Configurator instead of the removed bundled configurator.
+
 
 ### Changed
 

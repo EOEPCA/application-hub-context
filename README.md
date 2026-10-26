@@ -51,3 +51,20 @@ The image tag is derived automatically from the Git reference that triggered the
 | `develop` branch | `latest-dev` | Development and integration builds |
 | `main` branch    | `latest`     | Stable branch builds               |
 | Git tag `vX.Y.Z` | `X.Y.Z`      | Immutable release builds           |
+
+## Development and tests
+
+Project dependencies are declared in `pyproject.toml`; `requirements.txt` installs
+the project itself. Install a C compiler, Python development headers, and PostgreSQL
+client development headers (`libpq-dev` on Ubuntu or `libpq-devel` on Rocky Linux)
+to build psycopg2, then run:
+
+```sh
+uv tool run --from hatch==1.18.0 hatch run dev:test
+```
+
+The Hatch `dev` environment uses uv and installs the project plus its test
+helpers. The suite runs without a Kubernetes cluster or kubeconfig: API responses
+are mocked in the interface tests, while client construction uses the real
+Kubernetes client classes. CI runs the same command for pull requests and before
+building images on main, develop, or release tags.

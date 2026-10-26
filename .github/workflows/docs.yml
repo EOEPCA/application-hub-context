@@ -22,6 +22,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.x
-      - run: |
-            pip install mkdocs-material mkdocs-mermaid2-plugin mkdocs-jupyter
-            mkdocs gh-deploy --force
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.13.5'
+      - name: Build and deploy documentation
+        run: >-
+          uv tool run --constraints security/python-constraints.txt
+          --with mkdocs-mermaid2-plugin --with mkdocs-jupyter
+          --from mkdocs-material mkdocs gh-deploy --force
