@@ -1,4 +1,8 @@
 import unittest
+from copy import deepcopy
+from unittest.mock import Mock, patch
+
+from kubernetes import client
 
 from addict import Dict
 from kubernetes.client.rest import ApiException
@@ -46,16 +50,40 @@ spawner.profile_list = [
 
 
 class TestConstructor(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-
-        cls.app_hub_context = DefaultApplicationHubContext(
+    def setUp(self):
+        api_client = client.ApiClient(client.Configuration(host="https://kubernetes.invalid"))
+        self.addCleanup(api_client.close)
+        patcher = patch(
+            "application_hub_context.app_hub_context.ApplicationHubContext._get_api_client",
+            return_value=api_client,
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        test_spawner = deepcopy(spawner)
+        test_spawner.log = Mock()
+        self.app_hub_context = DefaultApplicationHubContext(
             namespace="apphub-test",
-            spawner=spawner,
+            spawner=test_spawner,
             config_path="tests/data/config.yml",
             a=1,
             b=2,
         )
+
+        def read_config_map(name, namespace):
+            if name != "gitlabenv":
+                raise ApiException(status=404, reason="ConfigMap not found")
+            return client.V1ConfigMap(data={"GITLAB_TOKEN": "adafeaflwejfowe"})
+
+        self.app_hub_context.core_v1_api.read_namespaced_config_map = Mock(
+            side_effect=read_config_map
+        )
+        self.role_read = Mock(side_effect=[ApiException(status=404), Mock()])
+        self.binding_read = Mock(side_effect=[ApiException(status=404), Mock()])
+        rbac = self.app_hub_context.rbac_authorization_v1_api
+        rbac.read_namespaced_role = self.role_read
+        rbac.read_namespaced_role_binding = self.binding_read
+        rbac.create_namespaced_role = Mock(return_value=Mock())
+        rbac.create_namespaced_role_binding = Mock(return_value=Mock())
 
     def test_obj(self):
         self.assertIs(type(self.app_hub_context), DefaultApplicationHubContext)
@@ -124,3 +152,15 @@ class TestConstructor(unittest.TestCase):
             subjects=[default_subject],
             role=pod_reader_role,
         )
+
+        rbac = self.app_hub_context.rbac_authorization_v1_api
+        rbac.create_namespaced_role.assert_called_once()
+        rbac.create_namespaced_role_binding.assert_called_once()
+        namespace, role_body = rbac.create_namespaced_role.call_args.args
+        self.assertEqual(namespace, "apphub-test")
+        self.assertEqual(role_body.metadata.name, "pod_reader_role")
+        self.assertEqual(role_body.rules[0].resources, ["pods", "pods/log"])
+        namespace, binding_body = rbac.create_namespaced_role_binding.call_args.args
+        self.assertEqual(namespace, "apphub-test")
+        self.assertEqual(binding_body.role_ref.name, "pod_reader_role")
+        self.assertEqual(binding_body.subjects[0]["name"], "default")

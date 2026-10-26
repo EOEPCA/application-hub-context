@@ -1,5 +1,7 @@
 dependencies:
-  - pip
+  - python>=3.12.16,<3.13
+  - pip>=26.2.2
+  - certifi>=2026.10.19
   - pip:
     - pdocs
     - mkdocs-material
