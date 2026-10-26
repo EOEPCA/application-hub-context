@@ -10,7 +10,7 @@ authors = [{ name = "Terradue", email = "fabrice.brito@terradue.com" }]
 license = { text = "EUPL" }
 requires-python = ">=3.10"
 dependencies = [
-    "kubernetes==31.0.0",
+    "kubernetes==37.0.1",
     "loguru==0.7.2",
     "psycopg2==2.9.10",
     "Jinja2==3.1.6",
