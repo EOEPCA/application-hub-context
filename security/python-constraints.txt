@@ -13,7 +13,7 @@ oauthenticator>=17.4.0
 pyasn1>=0.6.4
 tornado>=6.5.9
 urllib3>=2.8.0
-setuptools>=78.1.1
+setuptools>=84.2.1
 
 # Medium-severity fixes in the inherited hub environment.
 Jinja2>=3.1.6
