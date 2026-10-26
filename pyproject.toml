@@ -22,7 +22,7 @@ dependencies = [
     "oauthlib==4.0.0",
     "requests==2.33.0",
     "PyYAML==6.0.2",
-    "pydantic==2.9.2",
+    "pydantic==2.14.1",
 ]
 
 [project.urls]
