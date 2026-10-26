@@ -1,3 +1,2 @@
-kubernetes==31.0.0
-loguru==0.7.2
-psycopg2==2.9.10
+# Install the project and its dependencies declared in pyproject.toml.
+.
