@@ -4,22 +4,11 @@ tasks:
 
   # schema
 
-  conditional-pip-install:
-    internal: true
-    status:
-    - command -v {{.COMMAND}}
-    cmds:
-    - pip install {{.COMMAND}}
-
   check_schema:
     desc: Executes a strict check of a configuration over the JSON schema
-    deps:
-    - task: conditional-pip-install
-      vars:
-        COMMAND: check-jsonschema
     ignore_error: true
     cmds:
-    - check-jsonschema --schemafile ./schemas/config.schema.yaml {{.CONFIG}}
+    - uv tool run --constraints security/python-constraints.txt --from check-jsonschema check-jsonschema --schemafile ./schemas/config.schema.yaml {{.CONFIG}}
 
   check_schemas:
     desc: Executes a strict check of a configurations set over the JSON schema
@@ -39,13 +28,9 @@ tasks:
 
   create_models:
     desc: Generates the Pydantic models with field aliases
-    deps:
-    - task: conditional-pip-install
-      vars:
-        COMMAND: datamodel-codegen
     cmds:
     - |
-      datamodel-codegen  --input ./schemas/config.schema.yaml \
+      uv tool run --constraints security/python-constraints.txt --from datamodel-code-generator datamodel-codegen --input ./schemas/config.schema.yaml \
                          --input-file-type jsonschema \
                          --output-model-type pydantic_v2.BaseModel \
                          --base-class pydantic.BaseModel \
