@@ -2,7 +2,7 @@
 # https://discuss.python.org/t/109576
 pip>=26.2.2
 certifi>=2026.10.23
-uv>=0.13.4
+uv>=0.13.5
 sigstore>=4.5.1
 # Patched application dependencies; also prevent downstream downgrades.
 Mako>=1.4.2
