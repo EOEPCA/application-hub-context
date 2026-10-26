@@ -8,7 +8,8 @@ class TestConfigParser(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.ws_config_parser = ConfigParser.read_file(
-            config_path="tests/data/config.yml", user_groups=["group-2"]
+            config_path="tests/data/config.yml", user_groups=["group-2"],
+            spawner=None, namespace="apphub-test"
         )
         cls.groups = ["group-2"]
 
@@ -44,6 +45,7 @@ class TestConfigParser(unittest.TestCase):
         ws_config_parser = ConfigParser.read_file(
             config_path="tests/data/config.yml",
             user_groups=["group-1", "group-2"],
+            spawner=None, namespace="apphub-test",
         )
         self.assertEqual(len(ws_config_parser.get_profiles()), 2)
 
@@ -51,6 +53,7 @@ class TestConfigParser(unittest.TestCase):
         ws_config_parser = ConfigParser.read_file(
             config_path="tests/data/config.yml",
             user_groups=["group-a", "group-b"],
+            spawner=None, namespace="apphub-test",
         )
         self.assertDictEqual(
             ws_config_parser.get_profiles()[0],
